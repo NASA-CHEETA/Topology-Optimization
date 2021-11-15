@@ -1,0 +1,15 @@
+.idea
+CoDi
+generated
+CMakeLists.txt
+MeDiPack.config
+MeDiPack.creator
+MeDiPack.creator.user
+MeDiPack.creator.user.*
+MeDiPack.files
+MeDiPack.includes
+mpi31-report.pdf
+setup_env.txt
+tests/build
+tests/results
+updateDocumentation.sh

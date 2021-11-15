@@ -1,0 +1,13 @@
+extraction:
+  cpp:
+    prepare:
+      packages:
+        - libboost-all-dev
+        - libopenmpi-dev
+        - libxml2-dev
+        - libeigen3-dev
+        - python3-dev
+        - python3-numpy
+    configure:
+      command:
+        - cmake -DPRECICE_PETScMapping=OFF .

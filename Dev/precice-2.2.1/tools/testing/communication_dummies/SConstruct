@@ -1,0 +1,45 @@
+import os;
+import sys;
+
+preciceLibPath = '../../build/last'
+preciceLib = 'precice'
+preciceIncPath = '../../src'
+
+def errorMissingLib(lib, usage):
+    print "ERROR: Library '" + lib + "' (needed for " + usage + ") not found!"
+    Exit(1)
+
+def errorMissingHeader(header, usage):
+    print "ERROR: Header '" + header + "' (needed for " + usage + ") not found or does not compile!"
+    Exit(1)
+
+env = Environment (
+   CXX = 'mpicxx',
+   CCFLAGS    = ['-O3', '-std=c++11'],
+   ENV        = os.environ
+   )
+
+conf = Configure(env)
+
+conf.env.AppendUnique(LIBPATH = [preciceLibPath])
+
+if conf.CheckLib(preciceLib, autoadd=0):
+    conf.env.AppendUnique(LIBS = [preciceLib])
+else:
+    errorMissingLib(preciceLib, 'preCICE')
+
+conf.env.AppendUnique(CPPPATH = [preciceIncPath])
+
+conf.env.Program (
+    target = 'A',
+    source = [
+      Glob('mainA.cpp')
+    ]
+    )
+
+conf.env.Program (
+    target = 'B',
+    source = [
+      Glob('mainB.cpp'),
+    ]
+    )

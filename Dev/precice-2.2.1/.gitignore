@@ -1,0 +1,25 @@
+# The following files are ignored by Git
+*.[oa]
+*~
+*.exe
+*.log
+*.pyc
+.cproject
+.project
+.sconsign.dblite
+.sconf_temp
+\#*#
+.vscode
+*.DS_STORE
+core
+build
+GTAGS
+GRTAGS
+GPATH
+src/precice/adapters/python/PySolverInterface.cpp
+src/precice/adapters/python/PySolverInterface.so
+src/Eigen/
+docs/source-code-documentation/
+CMakeFiles
+Makefile
+src/versions.hpp
