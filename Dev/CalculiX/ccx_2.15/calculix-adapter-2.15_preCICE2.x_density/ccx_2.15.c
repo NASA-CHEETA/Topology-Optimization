@@ -148,29 +148,46 @@ else
 /* Loop through all the arguments for MDA and TopOpt */
   for(i=1;i<argc;i++)
   {
-    if(strcmp1(argv[i],"-o")==0)
+    //if(strcmp1(argv[i],"-o")==0)
+    // {
+      //strcpy(output,argv[i+1]);
+    //  break;
+  //   }
+
+      if(strcmp1(argv[i],"-p")==0)
      {
-      strcpy(output,argv[i+1]);
-      break;
+        printf("Penalty parameter is 0\n");
+        pstiff=atof(argv[i+1]);
+        break;
      }
 
-    /* See if both MDA and TopOpt flags are given */
+    /* See if MDA flag is given */ 
     if(strcmp1(argv[i],"-precice-participant")==0)
       {
+        /* See if MDA + penalty flag is given */
         if (strcmp1(argv[i+2],"-p")==0)
           {
+            printf("Running MDA with Penalty parameter\n");
             strcpy(preciceParticipantName,argv[i+1]);
             preciceUsed = 1;
             pstiff=atof(argv[i+3]);
+            break;
           }
-        /* If no TopOpt flags given, do only MDA */  
-        else
-          strcpy(preciceParticipantName,argv[i+1]);
-          preciceUsed = 1;
-      }  
+        /* If no TopOpt flag given, do only MDA */  
+        
+//          {
+ //           printf("Running MDA\n");
+ //           strcpy(preciceParticipantName,argv[i+1]);
+ //           preciceUsed = 1;
+ //           break;
+ //         }
+      }
+
+    
+    /* If only topOpt flag is given */
+
   }
-}
- 
+} 
   // Overwrite YAML config file name in case a specific file name is given on the command line
   //  if(strcmp1(argv[i],"-precice-config")==0)
   //   {
@@ -186,6 +203,7 @@ else
 //    }
   //}/
 //}
+
 //setenv("CCX_JOBNAME_GETJOBNAME",jobnamec,1);
 putenv("CCX_JOBNAME_GETJOBNAME=jobnamec");
 
