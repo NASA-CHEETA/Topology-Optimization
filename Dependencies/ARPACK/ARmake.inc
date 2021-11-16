@@ -25,7 +25,8 @@
 # | other than your home directory.      |
 # %--------------------------------------%
 #
-home =/home/prateek/MDO/nasa-cheeta/FSI/Modules/ARPACK
+home =/home/prateek/Documents/GitHub/MDO/Dependencies/ARPACK
+
 
 
 #  %--------------------------------------%

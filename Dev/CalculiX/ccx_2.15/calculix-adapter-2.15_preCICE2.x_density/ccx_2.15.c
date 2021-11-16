@@ -115,40 +115,77 @@ MPI_Comm_rank(MPI_COMM_WORLD, &myid) ;
 MPI_Comm_size(MPI_COMM_WORLD, &nproc) ;
 #endif
 
-if(argc==1){printf("Usage: CalculiX.exe -i jobname\n");FORTRAN(stop,());}
-else{
-  for(i=1;i<argc;i++){
-    if(strcmp1(argv[i],"-i")==0) {
-    strcpy(jobnamec,argv[i+1]);strcpy1(jobnamef,argv[i+1],132);jin++;break;}
-    if(strcmp1(argv[i],"-v")==0) {
-	printf("\nThis is Version 2.15\n\n");
-	FORTRAN(stop,());
-    }
+if(argc==1)
+  {
+    printf("Usage: CalculiX.exe -i jobname\n");
+    FORTRAN(stop,());
   }
-  if(jin==0){strcpy(jobnamec,argv[1]);strcpy1(jobnamef,argv[1],132);}
 
-  for(i=1;i<argc;i++){
-    if(strcmp1(argv[i],"-o")==0) {
-    strcpy(output,argv[i+1]);break;}
-/*
-//    // Get preCICE participantName
-//    if(strcmp1(argv[i],"-precice-participant")==0) {
-//        strcpy(preciceParticipantName,argv[i+1]);
-//        preciceUsed = 1;
-//    }
-//    // Overwrite YAML config file name in case a specific file name is given on the command line
-//    if(strcmp1(argv[i],"-precice-config")==0) {
-//        strcpy(configFilename,argv[i+1]);
-//    }
-*/
-     // Read penalty p for topopt
-
-    if(strcmp1(argv[i],"-p")==0) {
-      pstiff=atof(argv[i+1]);
+else
+{
+  for(i=1;i<argc;i++)
+  {
+    if(strcmp1(argv[i],"-i")==0)
+    {
+      strcpy(jobnamec,argv[i+1]);
+      strcpy1(jobnamef,argv[i+1],132);
+      jin++;
       break;
     }
+    if(strcmp1(argv[i],"-v")==0)
+    {
+	    printf("\nThis is Version 2.15, adapted for MDO\n\n");
+	    FORTRAN(stop,());
+    }
+  }
+
+  if(jin==0)
+  {
+    strcpy(jobnamec,argv[1]);
+    strcpy1(jobnamef,argv[1],132);
+  }
+
+/* Loop through all the arguments for MDA and TopOpt */
+  for(i=1;i<argc;i++)
+  {
+    if(strcmp1(argv[i],"-o")==0)
+     {
+      strcpy(output,argv[i+1]);
+      break;
+     }
+
+    /* See if both MDA and TopOpt flags are given */
+    if(strcmp1(argv[i],"-precice-participant")==0)
+      {
+        if (strcmp1(argv[i+2],"-p")==0)
+          {
+            strcpy(preciceParticipantName,argv[i+1]);
+            preciceUsed = 1;
+            pstiff=atof(argv[i+3]);
+          }
+        /* If no TopOpt flags given, do only MDA */  
+        else
+          strcpy(preciceParticipantName,argv[i+1]);
+          preciceUsed = 1;
+      }  
   }
 }
+ 
+  // Overwrite YAML config file name in case a specific file name is given on the command line
+  //  if(strcmp1(argv[i],"-precice-config")==0)
+  //   {
+  //      strcpy(configFilename,argv[i+1]);
+  //   }
+
+     /* Read penalty p for topopt */
+
+//    if(strcmp1(argv[i],"-p")==0)
+//     {
+//      pstiff=atof(argv[i+1]);
+//      break;
+//    }
+  //}/
+//}
 //setenv("CCX_JOBNAME_GETJOBNAME",jobnamec,1);
 putenv("CCX_JOBNAME_GETJOBNAME=jobnamec");
 

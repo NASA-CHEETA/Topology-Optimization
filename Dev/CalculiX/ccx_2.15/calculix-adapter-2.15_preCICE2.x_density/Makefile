@@ -2,13 +2,13 @@
 # https://github.com/precice/calculix-adapter/wiki/Installation-instructions-for-CalculiX
 # Set the following variables before building:
 # Path to original CalculiX source (e.g. $(HOME)/ccx_2.15/src )
-CCX             = /home/prateek/MDO/nasa-cheeta/AEROELASTIC_DEV/Modules/Dev/CalculiX/ccx_2.15/src_density
+CCX = /home/prateek/Documents/GitHub/MDO/Dev/CalculiX/ccx_2.15/src_density
 # Path to SPOOLES main directory (e.g. $(HOME)/SPOOLES.2.2 )
 # SPOOLES         = /home/prateek/MDO/nasa-cheeta/FSI/Modules/SPOOLES.2.2
 # Path to ARPACK main directory (e.g. $(HOME)/ARPACK )
-ARPACK          = /home/prateek/MDO/nasa-cheeta/AEROELASTIC_DEV/Modules/Dependencies/ARPACK
+ARPACK          = /home/prateek/Documents/GitHub/MDO/Dependencies/ARPACK
 # Path to yaml-cpp prefix (e.g. $(HOME)/yaml-cpp, should contain "include" and "build")
-YAML            = /home/prateek/MDO/nasa-cheeta/AEROELASTIC_DEV/Modules/Dependencies/yaml-cpp-yaml-cpp-0.6.2
+YAML            = /home/prateek/Documents/GitHub/MDO/Dependencies/yaml-cpp-yaml-cpp-0.6.2
 
 
 # Get the CFLAGS and LIBS from pkg-config (preCICE version >= 1.4.0).
@@ -76,9 +76,9 @@ FC = gfortran
 
 
 #INTEL MKL
-MKL_LIB= //opt/intel/oneapi/mkl/2021.2.0/lib/intel64
-MKL_INCLUDE= //opt/intel/oneapi/mkl/2021.2.0/include
-CMPLR_PATH= //opt/intel/oneapi/compiler/2021.2.0/linux/compiler/lib/intel64_lin
+MKL_LIB= //opt/intel/oneapi/mkl/2021.4.0/lib/intel64
+MKL_INCLUDE= //opt/intel/oneapi/mkl/2021.4.0/include
+CMPLR_PATH= //opt/intel/oneapi/compiler/2021.4.0/linux/compiler/lib/intel64_lin
 
 # Include a list of all the source files
 include $(CCX)/Makefile.inc
