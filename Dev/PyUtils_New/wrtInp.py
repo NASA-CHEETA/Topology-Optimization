@@ -1,7 +1,7 @@
 
-def wrtInput(Mesh_Name):
+def wrtInput(Mesh_Name, Dynamic, E, nu, rho):
 
-    description = 'Square flap under VIV'   # Add some details for inp file header, keep one line
+    description = 'Input deck for elastic simulation'   # Add some details for inp file header, keep one line
 
     filename={}
     filename['ccxdeck']="squareflap.inp"    # ccx inp file
@@ -11,9 +11,9 @@ def wrtInput(Mesh_Name):
 
     element = {}
     element['type']='C3D4'     # C3D4 = tetrahedral, C3D8 = hexahedral, CPS3 = tri, CPS4 = quad
-    element['E']='2.5E5'     # Young's Modulus
-    element['poisson']='0.35'   # Poisson ratio
-    element['density']='100'   # Density (optional for cload static case)
+    element['E']=str(E)     # Young's Modulus
+    element['poisson']=str(nu)   # Poisson ratio
+    element['density']=str(rho)   # Density (optional for cload static case)
 
 
     # Note: By default, inp file assumes tags[0] =  fixed node set, tags[1] = load node sets. This order is assumed inside inp file 
@@ -66,7 +66,7 @@ def wrtInput(Mesh_Name):
             file.write("\n\n*SOLID SECTION, ELSET="+set['elements']+", MATERIAL=EL")
             file.write("\n*DENSITY")
             file.write("\n"+element['density'])
-            Dynamic = 1
+            
             if Dynamic == 0:
                 file.write("\n\n*STEP")        
                 file.write("\n*STATIC")
