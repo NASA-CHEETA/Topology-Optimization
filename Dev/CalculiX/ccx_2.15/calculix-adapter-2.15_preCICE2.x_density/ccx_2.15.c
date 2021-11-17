@@ -154,7 +154,7 @@ else
     //  break;
   //   }
 
-      if(strcmp1(argv[i],"-p")==0)
+      if(strcmp1(argv[i],"-l")==0)
      {
         printf("Penalty parameter is 0\n");
         pstiff=atof(argv[i+1]);
@@ -165,7 +165,7 @@ else
     if(strcmp1(argv[i],"-precice-participant")==0)
       {
         /* See if MDA + penalty flag is given */
-        if (strcmp1(argv[i+2],"-p")==0)
+        if (strcmp1(argv[i+2],"-l")==0)
           {
             printf("Running MDA with Penalty parameter\n");
             strcpy(preciceParticipantName,argv[i+1]);
