@@ -117,7 +117,7 @@ MPI_Comm_size(MPI_COMM_WORLD, &nproc) ;
 
 if(argc==1)
   {
-    printf("Usage: CalculiX.exe -i jobname\n");
+    printf("Usage: CCX_MDO.exe -i jobname\n");
     FORTRAN(stop,());
   }
 
