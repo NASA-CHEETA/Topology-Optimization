@@ -1,0 +1,50 @@
+
+**Test matlab opt vs ccx opt
+**   3d cantilever test,hex mesh
+**
+*INCLUDE, INPUT = cant3d.msh
+*INCLUDE, INPUT=fixednodes.bou
+*INCLUDE, INPUT=pointload.frc
+
+*BOUNDARY
+fixed, 1,3
+
+
+*NSET, NSET=NNN
+1
+      
+*DESIGNVARIABLES, TYPE=COORDINATE
+NNN
+
+*MATERIAL,NAME=EL
+*ELASTIC
+1,.3
+
+*SOLID SECTION, ELSET=EALL, MATERIAL=EL
+      
+*STEP
+*STATIC
+*CLOAD
+load,2,-1
+
+*NODE FILE
+U
+
+*EL FILE
+S
+
+*NODE PRINT, NSET=NALL
+U
+
+*EL PRINT, ELSET=EALL
+S
+*END STEP
+
+
+*STEP
+*SENSITIVITY
+*OBJECTIVE
+STRAINENERGY
+*END STEP
+
+
