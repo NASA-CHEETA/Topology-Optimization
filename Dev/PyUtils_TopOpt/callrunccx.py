@@ -7,10 +7,10 @@ from runCCX import runCCX
 import readwriteData as rwd
 
 
-def callrunccx(x,grad,ccxversion,inp,volfrac,rmin,penalty,compfile):
+def callrunccx(x,grad,ccxversion,inp,volfrac,rmin,penalty,compfile, plotIterationWiseFlag, scaling):
     
-    plotIterationWiseFlag = False
-    scaling = 1
+    #plotIterationWiseFlag = False
+    #scaling = 1
 
     ##################################################################
     #Update iteration counter

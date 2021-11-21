@@ -33,6 +33,13 @@ def TopOpt(restartFlag):
 
     #restartFlag = False
 
+
+    plotIterationWiseFlag = False # True if post process for each TO iteration 
+    
+    compliance_scaling = 1
+    volume_scaling =1
+
+
     opt = nlopt.opt(nlopt.LD_MMA, dimension)
     #opt = nlopt.opt(nlopt.LD_SLSQP, dimension)
     #opt = nlopt.opt(nlopt.LD_CCSAQ, dimension)
@@ -49,8 +56,8 @@ def TopOpt(restartFlag):
     opt.set_lower_bounds(lower)
     opt.set_upper_bounds(upper)
 
-
-    f=lambda x,grad: callrunccx(x,grad,ccxversion,inp,volfrac,rmin,p,outputCompliance)
+    # Objective function
+    f=lambda x,grad: callrunccx(x,grad,ccxversion,inp,volfrac,rmin,p,outputCompliance, plotIterationWiseFlag, compliance_scaling)
 
 
     ff = open(outputCompliance, "w")
@@ -59,7 +66,9 @@ def TopOpt(restartFlag):
 
 
     opt.set_min_objective(f)
-    opt.add_inequality_constraint(lambda x, grad: getVolconstraint(x,grad,ccxversion,inp,volfrac,rmin,p), 1e-8)
+
+    # Volume constraint
+    opt.add_inequality_constraint(lambda x, grad: getVolconstraint(x,grad,ccxversion,inp,volfrac,rmin,p, volume_scaling), 1e-8)
 #opt.add_inequality_constraint(lambda x, grad: myconstraint(x,grad, -1, 1), 1e-8)
 #opt.set_ftol_rel(1e-4)
     opt.set_xtol_rel(1e-3)
