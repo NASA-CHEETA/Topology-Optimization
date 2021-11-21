@@ -4,10 +4,16 @@ def wrtInput(Mesh_Name, Dynamic, E, nu, rho):
     description = 'Input deck for elastic simulation'   # Add some details for inp file header, keep one line
 
     filename={}
-    filename['ccxdeck']="squareflap.inp"    # ccx inp file
-    filename['meshfile']='Solid/'+str(Mesh_Name)    # ccx mesh file
-    filename['fixedNodes']='Solid/bottomNodes.nam'
-    filename['surfaceNodes']='Solid/surfaceNodes.nam'
+    if Dynamic == 1:
+        filename['ccxdeck']="squareflap.inp"    # ccx inp file
+        filename['meshfile']='Solid/'+str(Mesh_Name)    # ccx mesh file
+        filename['fixedNodes']='Solid/bottomNodes.nam'
+        filename['surfaceNodes']='Solid/surfaceNodes.nam'
+    if Dynamic == 0:
+        filename['ccxdeck']="squareflap.inp"    # ccx inp file
+        filename['meshfile']=str(Mesh_Name)    # ccx mesh file
+        filename['fixedNodes']='bottomNodes.nam'
+        filename['surfaceNodes']='surfaceNodes.nam'    
 
     element = {}
     element['type']='C3D4'     # C3D4 = tetrahedral, C3D8 = hexahedral, CPS3 = tri, CPS4 = quad
@@ -50,8 +56,9 @@ def wrtInput(Mesh_Name, Dynamic, E, nu, rho):
             file.write("\n\n**Constrain axis if required")        
             file.write("\n*BOUNDARY") 
             file.write("\n"+set['nodes']+",3,3")    
-
-            if FLAGS['TOPOPT']:
+            
+            if Dynamic == 0:
+            #if FLAGS['TOPOPT']:
                 file.write("\n\n*NSET, NSET = N")        
                 file.write("\n1") 
 
@@ -91,7 +98,8 @@ def wrtInput(Mesh_Name, Dynamic, E, nu, rho):
             file.write("\nS")            
             file.write("\n*END STEP") 
 
-            if FLAGS['TOPOPT']:  
+            if Dynamic ==0:
+            #if FLAGS['TOPOPT']:  
                 file.write("\n\n*STEP")        
                 file.write("\n*SENSITIVITY")
                 file.write("\n*OBJECTIVE")        
