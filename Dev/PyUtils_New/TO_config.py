@@ -39,7 +39,8 @@ def TopOpt(restartFlag):
     compliance_scaling = 1
     volume_scaling =1
 
-
+    #########################################################################################
+    #########################################################################################
     opt = nlopt.opt(nlopt.LD_MMA, dimension)
     #opt = nlopt.opt(nlopt.LD_SLSQP, dimension)
     #opt = nlopt.opt(nlopt.LD_CCSAQ, dimension)
@@ -69,25 +70,21 @@ def TopOpt(restartFlag):
 
     # Volume constraint
     opt.add_inequality_constraint(lambda x, grad: getVolconstraint(x,grad,ccxversion,inp,volfrac,rmin,p, volume_scaling), 1e-8)
-#opt.add_inequality_constraint(lambda x, grad: myconstraint(x,grad, -1, 1), 1e-8)
-#opt.set_ftol_rel(1e-4)
+    #opt.add_inequality_constraint(lambda x, grad: myconstraint(x,grad, -1, 1), 1e-8)
+    #opt.set_ftol_rel(1e-4)
     opt.set_xtol_rel(1e-3)
     x = opt.optimize(x0)
     minf = opt.last_optimum_value()
-#print('optimum at ', x)
+    #print('optimum at ', x)
     print('minimum value = ', minf)
     print('result code = ', opt.last_optimize_result())
     print('nevals = ', opt.get_numevals())
-#print('initial step =', opt.get_initial_step(x0))
+    #print('initial step =', opt.get_initial_step(x0))
 
     return 0
 
-'''
-rhoPhys=rwd.getRhoPhys()
-cutoff=0.2
-coord="coordinates.msh"
-map="mapelements.msh"
 
+if __name__=='__main__':
 
-rwd.postprocess(coord,map,"output.inp",rhoPhys,cutoff)
-'''
+    restartFlag = False
+    topopt = TopOpt(restartFlag)
