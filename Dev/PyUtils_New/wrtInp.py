@@ -5,12 +5,12 @@ def wrtInput(Mesh_Name, Dynamic, E, nu, rho):
 
     filename={}
     if Dynamic == 1:
-        filename['ccxdeck']="squareflap.inp"    # ccx inp file
+        filename['ccxdeck']="elastic.inp"    # ccx inp file
         filename['meshfile']='Solid/'+str(Mesh_Name)    # ccx mesh file
         filename['fixedNodes']='Solid/bottomNodes.nam'
         filename['surfaceNodes']='Solid/surfaceNodes.nam'
     if Dynamic == 0:
-        filename['ccxdeck']="squareflap.inp"    # ccx inp file
+        filename['ccxdeck']="elastic.inp"    # ccx inp file
         filename['meshfile']=str(Mesh_Name)    # ccx mesh file
         filename['fixedNodes']='bottomNodes.nam'
         filename['surfaceNodes']='surfaceNodes.nam'
@@ -63,11 +63,11 @@ def wrtInput(Mesh_Name, Dynamic, E, nu, rho):
             
             if Dynamic == 0:
             #if FLAGS['TOPOPT']:
-                file.write("\n\n*NSET, NSET = N")        
-                file.write("\n1") 
+                file.write("\n\n*NSET, NSET = DV")        
+                file.write("\nDV") 
 
                 file.write("\n\n*DESIGNVARIABLES, TYPE = COORDINATE")        
-                file.write("\nN") 
+                file.write("\nDV") 
 
             file.write("\n\n**Add material named EL with elastic properties")
             file.write("\n*MATERIAL,NAME=EL")
@@ -82,15 +82,15 @@ def wrtInput(Mesh_Name, Dynamic, E, nu, rho):
                 file.write("\n\n*STEP")        
                 file.write("\n*STATIC")
                 file.write("\n*CLOAD")
+                file.write("\n*INCLUDE, INPUT = surfaceForces.nam")
             else:
                 file.write("\n\n*STEP,NLGEOM, INC = 1000000000000")
                 file.write("\n*DYNAMIC,DIRECT")
                 file.write("\n5E-03,2000")        
                 file.write("\n*CLOAD")
-
-            file.write("\n"+tags[1]+",1,"+ load['x'])         
-            file.write("\n"+tags[1]+",2,"+ load['y'])
-            file.write("\n"+tags[1]+",3,"+ load['z'])       
+                file.write("\n"+tags[1]+",1,"+ load['x'])         
+                file.write("\n"+tags[1]+",2,"+ load['y'])
+                file.write("\n"+tags[1]+",3,"+ load['z'])       
 
             file.write("\n\n*NODE FILE")        
             file.write("\nU")
