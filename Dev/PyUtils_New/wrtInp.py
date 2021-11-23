@@ -13,7 +13,8 @@ def wrtInput(Mesh_Name, Dynamic, E, nu, rho):
         filename['ccxdeck']="squareflap.inp"    # ccx inp file
         filename['meshfile']=str(Mesh_Name)    # ccx mesh file
         filename['fixedNodes']='bottomNodes.nam'
-        filename['surfaceNodes']='surfaceNodes.nam'    
+        filename['surfaceNodes']='surfaceNodes.nam'
+        filename['surfaceForces'] ='surfaceForces.nam'    
 
     element = {}
     element['type']='C3D4'     # C3D4 = tetrahedral, C3D8 = hexahedral, CPS3 = tri, CPS4 = quad
@@ -45,6 +46,9 @@ def wrtInput(Mesh_Name, Dynamic, E, nu, rho):
             file.write("\n*INCLUDE, INPUT="+filename['meshfile'])
             file.write("\n*INCLUDE, INPUT="+filename['fixedNodes'])
             file.write("\n*INCLUDE, INPUT="+filename['surfaceNodes'])
+            if Dynamic == 0:
+                file.write("\n*INCLUDE, INPUT="+filename['surfaceForces'])
+
         #for tag_index, tag_name in enumerate(tags):
         #    tagfilename = tag_name + ".nam"
         #    file.write("\n*INCLUDE, INPUT=" + tagfilename)

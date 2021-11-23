@@ -9,6 +9,7 @@ import readwriteData as rwd
 import TO_config
 import FSI
 import meshutil
+import ForcSurf
 
 def sTopOpt(Nnodes, Nelems, E, nu, rho, n):
 
@@ -160,6 +161,8 @@ def sTopOpt(Nnodes, Nelems, E, nu, rho, n):
         Flag = wrtInp.wrtInput(file,0,E,nu,rho)
 
     #Create a file for Forces .csv
+    Flag = ForcSurf.ForcSurf_to_ccx("Forces.csv", "surfaceForces.nam")
+
 
     #Perform Topology Optimization
    # if n == 1:
