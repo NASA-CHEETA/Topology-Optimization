@@ -12,14 +12,16 @@ import meshutil
 import ForcSurf
 
 def sTopOpt(Nnodes, Nelems, E, nu, rho, n):
-
+    if n ==1:
+        print("Clearing old design files ...\n")
     #Clear all design folders from previous runs
-    for file in glob.glob('DSN*'):
-        shutil.rmtree(file)
-    for file in glob.glob('*temp'):
-        shutil.rmtree(file)
-    for file in glob.glob('*.inp'):
-        os.remove(file)    
+        for file in glob.glob('DSN*'):
+            shutil.rmtree(file)
+        for file in glob.glob('*temp'):
+            shutil.rmtree(file)
+        for file in glob.glob('*.inp'):
+            os.remove(file)
+        print("Done!\n")        
 
     #Get the root directory 
     Root = os.getcwd()
@@ -31,8 +33,13 @@ def sTopOpt(Nnodes, Nelems, E, nu, rho, n):
         TMP_DIR = os.getcwd()
         os.chdir(Root)
 
-    #Make TMP_DIR available to everyone 
-    TMP_DIR = TMP_DIR 
+    #If not on first design cycle, search for temp directory
+    if n > 1:
+        for file in glob.glob("temp"):
+            os.chdir(file)
+            TMP_DIR = os.getcwd()
+            os.chdir(Root) 
+     
 
     #Create a design directory for each design iteration 
     os.makedirs("DSN_00"+str(n))
@@ -118,6 +125,9 @@ def sTopOpt(Nnodes, Nelems, E, nu, rho, n):
     Flag = shutil.copy('precice-config.xml',FSI_DIR)
     Flag = shutil.copy('config.yml',FSI_DIR)
     Flag = shutil.copy('execute.sh',FSI_DIR)
+    for file in glob.glob("restart*"):
+        Flag = shutil.copy(file,FLUID_DIR)
+
 
 
 #--------------------------------------------------------------------------------------------------#
@@ -127,17 +137,18 @@ def sTopOpt(Nnodes, Nelems, E, nu, rho, n):
     #Move to FSI DIR and perform Aero-elastic Simulation 
     os.chdir(FSI_DIR)
 
-    print("AERO-ELASTIC ITER:", n)
+    print("Performring Aero-Elastic iteration:", n)
     Flag = FSI.AeroElastic()
-
+    print("Aeroelastic Equillibrium achieved!\n")
+    
     #Read Disp.csv and create deformed mesh 
-
+    print("Deforming elastic mesh for iteration:\n", n)
     for file in glob.glob('Solid/*.msh'):
         Mesh_Name = file  
     Def_Mesh_Name = meshutil.MshUpdt(Mesh_Name, Nnodes, Nelems,n)
-
+    print("Mesh deformation compltete!\n")
+    print("Pre-processing for Topology Optimization ...\n")
     #Move the deformed mesh, Forces and nam files to TopOpt_DIR
-
     for file in glob.glob('Forces.csv'):
         shutil.move(file,TOPT_DIR)
 
@@ -163,22 +174,24 @@ def sTopOpt(Nnodes, Nelems, E, nu, rho, n):
     #Create a file for Forces .csv
     Flag = ForcSurf.ForcSurf_to_ccx("Forces.csv", "surfaceForces.nam")
 
-
+    print("Performing Topology Optimization ...\n")
     #Perform Topology Optimization
-   # if n == 1:
-   #     Flag = TO_config.TopOpt(restartFlag = False)
+    if n == 1:
+    	Flag = TO_config.TopOpt(restartFlag = False)
 
-  #  if n > 1:
+    if n > 1:
         #At this step a density_FSI.dat is read
-  #      Flag = TO_config.TopOpt(restartFlag = True)
-
+    	Flag = TO_config.TopOpt(restartFlag = True)
+    
+    print("Topology Optimization complete! \n")
+    print("Extracting densities for next design cycle...\n")
     #Extract second column from rho.dat for next iter
- #   rhoPhys = rwd.getRhoPhys()
- #   flag   = rwd.writerhoPhys(rhoPhys)
+    rhoPhys = rwd.getRhoPhys()
+    flag    = rwd.writerhoPhys(rhoPhys)
 
     #Move the density_FSI.dat to tempDir
-#    for file in glob.glob("density_FSI.dat"):
-#        shutil.move(file, TMP_DIR)
+    for file in glob.glob("density.*"):
+        shutil.move(file, TMP_DIR)
 
     #Copy the deformed mesh to tempDir for FSI at next design cycle
     for file in glob.glob('*.msh'):

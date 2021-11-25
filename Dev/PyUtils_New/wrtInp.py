@@ -14,7 +14,7 @@ def wrtInput(Mesh_Name, Dynamic, E, nu, rho):
         filename['meshfile']=str(Mesh_Name)    # ccx mesh file
         filename['fixedNodes']='bottomNodes.nam'
         filename['surfaceNodes']='surfaceNodes.nam'
-        filename['surfaceForces'] ='surfaceForces.nam'    
+        filename['surfaceForces']='surfaceForces.nam' 
 
     element = {}
     element['type']='C3D4'     # C3D4 = tetrahedral, C3D8 = hexahedral, CPS3 = tri, CPS4 = quad
@@ -46,8 +46,7 @@ def wrtInput(Mesh_Name, Dynamic, E, nu, rho):
             file.write("\n*INCLUDE, INPUT="+filename['meshfile'])
             file.write("\n*INCLUDE, INPUT="+filename['fixedNodes'])
             file.write("\n*INCLUDE, INPUT="+filename['surfaceNodes'])
-            if Dynamic == 0:
-                file.write("\n*INCLUDE, INPUT="+filename['surfaceForces'])
+            
 
         #for tag_index, tag_name in enumerate(tags):
         #    tagfilename = tag_name + ".nam"
@@ -64,7 +63,7 @@ def wrtInput(Mesh_Name, Dynamic, E, nu, rho):
             if Dynamic == 0:
             #if FLAGS['TOPOPT']:
                 file.write("\n\n*NSET, NSET = DV")        
-                file.write("\nDV") 
+                file.write("\n1") 
 
                 file.write("\n\n*DESIGNVARIABLES, TYPE = COORDINATE")        
                 file.write("\nDV") 
@@ -86,7 +85,7 @@ def wrtInput(Mesh_Name, Dynamic, E, nu, rho):
             else:
                 file.write("\n\n*STEP,NLGEOM, INC = 1000000000000")
                 file.write("\n*DYNAMIC,DIRECT")
-                file.write("\n5E-03,2000")        
+                file.write("\n1E-03,1000")        
                 file.write("\n*CLOAD")
                 file.write("\n"+tags[1]+",1,"+ load['x'])         
                 file.write("\n"+tags[1]+",2,"+ load['y'])
