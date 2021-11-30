@@ -53,5 +53,10 @@ def callrunccx(x,grad,ccxversion,inp,volfrac,rmin,penalty,compfile, plotIteratio
     f.close()
 
     if grad.size > 0:
-        grad[:]=rwd.getComplsens()*scaling   
+        grad[:]=rwd.getComplsens()*scaling
+
+        # For passive elements, gradient is zero
+        el = rwd.read_fea_set('pse.nam')
+        rwd.value_fea_set(grad, el, 0)
+
     return compliance*scaling

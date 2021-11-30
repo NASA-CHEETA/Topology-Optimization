@@ -11,4 +11,9 @@ def getVolconstraint(x, grad,ccxversion,inp,volfrac,rmin,penalty, volume_scaling
 	if grad.size > 0:
 		a=rwd.getCurrentVolsens()
 		grad[:]=a*scaling
+
+		# For passive elements, gradient is zero
+		el = rwd.read_fea_set('pse.nam')
+		rwd.value_fea_set(grad, el, 0)
+		 		
 	return volConstraint*scaling

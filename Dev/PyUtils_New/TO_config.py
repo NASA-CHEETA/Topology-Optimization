@@ -12,32 +12,37 @@ import readwriteData as rwd
 def TopOpt(restartFlag):
     ccxversion="ccx_2.15_mkleqnnz"
 
-    inp="cant3d"
+    inp= "tet"
 
-    volfrac=0.15
-    rmin=3
+    dimension= 316715
+
+    volfrac=0.2
+    
+    rmin=0.006
+    
     p=3
 
+    passivefilename = 'passive_el_set.nam'   # elements excluded from design doamin
 
     callrunccx.nnz = 300 # Number of nonzeros in each row of density filter assumed
-
 
     callrunccx.counter=0    #Overall iteration counter
 
     callrunccx.q =3     #Filter order start
-    callrunccx.q_max=3   #Max filter order
-    callrunccx.q_iter = 30  #Iteration number to update the fitler order
-    callrunccx.q_factor = 1.5 #Factor for filter order update
 
-    dimension=9000
+    callrunccx.q_max=3   #Max filter order
+
+    callrunccx.q_iter = 30  #Iteration number to update the fitler order
+
+    callrunccx.q_factor = 1.5 #Factor for filter order update
 
     #restartFlag = False
 
-
     plotIterationWiseFlag = False # True if post process for each TO iteration 
     
-    compliance_scaling = 1
-    volume_scaling =1
+    compliance_scaling = 10**6
+
+    volume_scaling =10**6
 
     #########################################################################################
     #########################################################################################
@@ -53,7 +58,13 @@ def TopOpt(restartFlag):
         x0 = rwd.rho_column("density_FSI.dat")
     else:
         x0 = volfrac*np.ones(dimension)
-    
+
+    # Initialize passive elements to 1
+    rwd.parse_fea_set(passivefilename, 'pse.nam')   
+    el = rwd.read_fea_set('pse.nam')
+    rwd.value_fea_set(x0, el, 0.99)
+
+    # DV Box bounds
     opt.set_lower_bounds(lower)
     opt.set_upper_bounds(upper)
 
