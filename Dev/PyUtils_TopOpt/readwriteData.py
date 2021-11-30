@@ -125,3 +125,43 @@ def postprocess(coord,map,outputinp,rhoPhys,cutoff):
     with open(outputinp, "w") as text_file:
             text_file.writelines([l1,l2,l3,l4])
             print("writing final output done!")
+
+
+def parse_fea_set(File, outputfile):
+    """
+    Reads the ccx set file, and writes into a file as 
+    a column vector without comma
+    """
+
+    # Read the file
+    with open(File, "r") as f:
+        lines = f.readlines()
+
+        # Write to file
+        with open(outputfile, "w") as new_f:
+            
+            for line in lines[1:]:  
+                b=line.split(",")    
+                for each in b[:-1]:
+                    new_f.write(each)
+                    new_f.write('\n')
+            # The last term in last line was not comma, but ignored.
+            # so write it
+            new_f.write(b[-1])
+
+
+def read_fea_set(File):
+    """
+    Read a column of element numbers or files written by 
+    parse_fea_set(). Use it to set active/passive elements
+    """
+    el=np.loadtxt(File, delimiter='\n',dtype=int)
+    return el
+
+def value_fea_set(vector, index, value):
+    """
+    Set entries at index locations in vector to a value.
+    Use it to assign 0 or 1 values. 
+    """
+    vector[index-1] = value
+    return vector
