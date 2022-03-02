@@ -150,18 +150,104 @@ def parse_fea_set(File, outputfile):
             new_f.write(b[-1])
 
 
-def read_fea_set(File):
+def readElemList(File = 'passiveElemList', col = 0):
     """
-    Read a column of element numbers or files written by 
-    parse_fea_set(). Use it to set active/passive elements
+    Read a column of element numbers from a file. Use this to set void/passive elements
     """
-    el=np.loadtxt(File, delimiter='\n',dtype=int)
+    el=np.loadtxt(File,dtype=int)
     return el
 
-def value_fea_set(vector, index, value):
+def setElemVal(vector, index, value):
     """
     Set entries at index locations in vector to a value.
     Use it to assign 0 or 1 values. 
     """
     vector[index-1] = value
     return vector
+
+
+def update_beta(iter, iter_init, iter_beta, beta, beta_factor, betamax):
+    """
+    Update new value of beta, Based on https://github.com/thsmit/TopOpt_in_PETSc_wrapped_in_Python/blob/master/topoptlib/src/Filter.cc
+    """
+    #if iter>15 and iter<=iter_init and beta<=betamax:
+    #   beta = beta+1
+
+    #el
+    if iter >= iter_init and iter%iter_beta ==0 and beta <=betamax:
+        beta = beta*beta_factor
+
+    if beta>betamax:
+        beta = betamax
+
+    return beta
+
+    ##############################################################################
+def apply_heavisidefilter(x, eta, beta):
+    """
+    Apply tanh filter to rho, also calculate derivative
+    """
+    f =0+ (np.tanh(beta*eta) + np.tanh(beta*(x-eta)))/(np.tanh(beta*eta) + np.tanh(beta*(1-eta)))
+    df = beta*(1-(np.tanh(beta*(x-eta)))**2)/(np.tanh(beta*eta) + np.tanh(beta*(1-eta)))   
+    return f, df
+
+"""
+def update_beta(iter, iter_init, iter_beta, beta, beta_factor, betamax):
+ 
+    #Update the beta value gradually
+    
+    if iter>15 and  iter%2 == 0 and iter<=iter_init and beta<=betamax:
+        beta = beta+1
+
+    #el
+    elif iter%iter_beta == 0 and iter>=iter_init and  beta <=betamax:
+        beta = beta*beta_factor
+
+    if beta>betamax:
+        beta = 1
+
+    return beta
+"""
+
+def sum_projection(x, eta, beta):
+    """
+    Calculate difference in volume by heaviside operator
+    """
+    x_sum = np.sum(x)
+    xh = apply_heavisidefilter(x, eta, beta)[0]
+    xh_sum = np.sum(xh)
+    
+    return x_sum - xh_sum
+
+
+def my_bisection(f, a, b, tol, x, beta): 
+    # approximates a root, R, of f bounded 
+    # by a and b to within tolerance 
+    # | f(m) | < tol with m the midpoint 
+    # between a and b Recursive implementation
+    
+           
+    # get midpoint
+    m = (a + b)/2
+    
+    if np.abs(f(x, m, beta)) < tol:
+        # stopping condition, report m as root
+        return m
+    elif f(x, a, beta) * f(x,m, beta) > 0:
+        # case where m is an improvement on a. 
+        # Make recursive call with a = m
+        return my_bisection(f, m, b, tol,x,beta)
+    elif f(x,b, beta)*f(x, m, beta) > 0:
+        # case where m is an improvement on b. 
+        # Make recursive call with b = m
+        return my_bisection(f, a, m, tol, x, beta)
+
+def update_eta(x, beta):
+    """
+    Determine volume preserving eta using bisection search
+    """
+    a = 0
+    b = 1
+    tol = 1e-4
+
+    return my_bisection(sum_projection, a, b, tol, x, beta)
