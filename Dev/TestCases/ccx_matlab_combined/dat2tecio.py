@@ -1,9 +1,19 @@
 import numpy as np
 import pandas as pd
 import sys
-from readwriteData import update_eta, apply_heavisidefilter
+from readwriteData import update_eta, apply_heavisidefilter, readElemList
 import matplotlib.pyplot as plt
 
+def get_Zonetype(id):
+    if id == 38: #C3D8
+        ZONETYPE = 'FEBRICK'
+    elif id ==  34: #C3D4
+        ZONETYPE = 'FETETRAHEDRON'
+    elif id == 53:  
+        ZONETYPE = 'FETRIANGLE'
+    elif id == 54:
+        ZONETYPE = 'FEQUADRILATERAL'
+    return ZONETYPE
 
 def nodal_density(Eleid, RHO_FILTERED, E1, E2, E3, E4, E5, E6, E7, E8, Nnodes):
     """
@@ -102,7 +112,6 @@ def interp_hex(mesh,inputrhofile, Nnodes, Nelems, beta):
         eta = update_eta(RHO_FILTERED, beta)
         print('Eta:', eta)
         RHO_FILTERED_H = apply_heavisidefilter(RHO_FILTERED, eta, beta)[0]
-
         densityinterp_H = nodal_density(Eleid, RHO_FILTERED_H, E1, E2, E3, E4, E5, E6, E7, E8, Nnodes) 
 
     return Nodeid, X, Y, Z, Eleid, E1, E2, E3, E4, E5, E6, E7, E8, densityinterp, densityinterp_H, eta
@@ -112,9 +121,20 @@ if __name__ == "__main__":
     mesh = "cant3d.msh"
     inputrhofile = "rhos.dat"
     outputfile= "rhoInterpolatedhex.dat"
+    passivefilename = 'passiveElemList.nam'   # elements excluded from design doamin, put a randon integer if empty
     Nnodes= 10416
     Nelems= 9000
+    elementType = 38 # 38= C3D8, 34=C3D4, 54=S4, 53=S3
+    
     beta = 1000
+
+
+    if isinstance(passivefilename, str):
+        print('Getting passive elements')
+        passiveEl = readElemList(passivefilename)-1
+
+    fullElList = np.arange(0, Nelems, dtype = int)
+    designEl = np.setdiff1d(fullElList, passiveEl)
 
     Nodeid, X, Y, Z, Eleid, E1, E2, E3, E4, E5, E6, E7, E8, densityinterp, densityinterp_H, eta= interp_hex(mesh,inputrhofile, Nnodes, Nelems, beta)
 
@@ -123,11 +143,18 @@ if __name__ == "__main__":
     file.write("\n")
     file.write("VARIABLES = \"x\"\"y\"\"z\"\"Rho\"\"RhoH"+str(eta)+"\"")
     file.write("\n")
-    file.write("ZONE STRANDID=2, SOLUTIONTIME=1, NODES="+str(Nnodes)+", ELEMENTS="+ str(Nelems)+", DATAPACKING=POINT, ZONETYPE=FEBRICK")
+    file.write("ZONE STRANDID=1, SOLUTIONTIME=1, NODES="+str(Nnodes)+", ELEMENTS="+ str(np.size(designEl))+", DATAPACKING=POINT, ZONETYPE="+get_Zonetype(elementType))
     for i in range(Nnodes):
         file.write("\n" +"{:.5e}" .format(X[i,0]) +'  \t  '+ "{:.5e}".format(Y[i,0]) + ' \t \t ' + "{:.5e}".format(Z[i,0]) + ' \t ' +"{:.5e}".format(densityinterp[i,0])+ ' \t ' +"{:.5e}".format(densityinterp_H[i,0]))
 
-    for i in range(Nelems):
+    for i in designEl:
+        file.write("\n" + str(E1[i,0]) +' \t '+ str(E2[i,0]) + ' \t ' + str(E3[i,0])+ ' \t ' +str(E4[i,0]) +' \t '+str(E5[i,0]) +' \t '+ str(E6[i,0]) + ' \t ' + str(E7[i,0])+ ' \t ' +str(E8[i,0]))
+    file.write("\n")
+
+    file.write("VARIABLES = \"x\"\"y\"\"z\"\"Rho\"\"RhoH"+str(eta)+"\"")
+    file.write("\n")
+    file.write("ZONE STRANDID=2,VARSHARELIST=([1,2,3,4,5]), SOLUTIONTIME=1, NODES="+str(Nnodes)+", ELEMENTS="+ str(np.size(passiveEl))+", DATAPACKING=POINT, ZONETYPE="+get_Zonetype(elementType))
+    for i in passiveEl:
         file.write("\n" + str(E1[i,0]) +' \t '+ str(E2[i,0]) + ' \t ' + str(E3[i,0])+ ' \t ' +str(E4[i,0]) +' \t '+str(E5[i,0]) +' \t '+ str(E6[i,0]) + ' \t ' + str(E7[i,0])+ ' \t ' +str(E8[i,0]))
     file.write("\n")
     file.close()
