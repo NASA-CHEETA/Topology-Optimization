@@ -83,7 +83,7 @@
      &  plicon(0:2*npmat_,ntmat_,*),plkcon(0:2*npmat_,ntmat_,*),
      &  xstiff(27,mi(1),*),plconloc(802),dtime,ttime,time,tvar(2),
      &  sax(60,60),ffax(60),gs(8,4),a,stress(6),stre(3,3),
-     &  pslavsurf(3,*),pmastsurf(6,*),xmass,rhoi,penal
+     &  pslavsurf(3,*),pmastsurf(6,*),xmass,rhoi,penal, rho_c
 !
       intent(in) co,kon,lakonl,p1,p2,omx,bodyfx,nbody,
      &  nelem,elcon,nelcon,rhcon,nrhcon,alcon,nalcon,alzero,
@@ -103,6 +103,9 @@
 !
       include "gauss.f"
 !
+!     cutoff for rho
+      rho_c = 0.1
+
       ifaceq=reshape((/4,3,2,1,11,10,9,12,
      &            5,6,7,8,13,14,15,16,
      &            1,2,6,5,9,18,13,17,
@@ -1731,7 +1734,11 @@ c        write(6,*) alp, sume, summ, factore, factorm
 
       do i=1,3*nope
         do j=1,3*nope
-          s(i,j)=(rhoi**penal)*s(i,j)
+          if(rhoi.gt.rho_c) then
+            s(i,j)=(rhoi**penal)*s(i,j)
+          else
+            s(i,j)=(rhoi*rho_c**penal)*s(i,j) 
+          endif
         enddo
       enddo
 

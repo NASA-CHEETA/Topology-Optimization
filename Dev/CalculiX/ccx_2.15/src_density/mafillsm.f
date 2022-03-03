@@ -72,7 +72,7 @@
      &  plicon(0:2*npmat_,ntmat_,*),plkcon(0:2*npmat_,ntmat_,*),
      &  xstiff(27,mi(1),*),veold(0:mi(2),*),om,valu2,value,dtime,ttime,
      &  time,thicke(mi(3),*),doubleglob(*),clearini(3,9,*),
-     &  pslavsurf(3,*),pmastsurf(6,*),design(*),rhoi,penal
+     &  pslavsurf(3,*),pmastsurf(6,*),design(*),rhoi,penal, penal_mass
 !
       intent(in) co,nk,kon,ipkon,lakon,ne,nodeboun,ndirboun,
      &  xboun,nboun,
@@ -98,6 +98,8 @@
       i0=0
       icalccg=0
       rhoi = 0.d0
+c     penalty for rho on mass      
+      penal_mass = 1.d0 
 c      write(*,*) loc(kflag)
 c      write(*,*) loc(s)
 c      write(*,*) loc(sm)
@@ -218,11 +220,15 @@ c           ndof=ichar(lakon(i)(6:6))-48
                  p2(3)=xbody(7,j)
 !     
 !          assigning gravity forces
-!     
+!          gkdas2: gravity force is parameterized by rhoi 
+!                 To do: add cutoff rhoi for stability
               elseif(ibody(1,j).eq.2) then
-                 bodyf(1)=bodyf(1)+xbody(1,j)*xbody(2,j)
-                 bodyf(2)=bodyf(2)+xbody(1,j)*xbody(3,j)
-                 bodyf(3)=bodyf(3)+xbody(1,j)*xbody(4,j)
+                 bodyf(1)=bodyf(1)+(rhoi**penal_mass)
+     &                    *xbody(1,j)*xbody(2,j)                
+                 bodyf(2)=bodyf(2)+(rhoi**penal_mass)
+     &                    *xbody(1,j)*xbody(3,j)
+                 bodyf(3)=bodyf(3)+(rhoi**penal_mass)
+     &                    *xbody(1,j)*xbody(4,j)
 !     
 !          assigning newton gravity forces
 !   
