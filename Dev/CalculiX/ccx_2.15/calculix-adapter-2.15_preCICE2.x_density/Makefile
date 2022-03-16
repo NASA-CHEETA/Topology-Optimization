@@ -76,16 +76,16 @@ FC = gfortran
 
 
 #INTEL MKL
-MKL_LIB= //opt/intel/oneapi/mkl/2021.4.0/lib/intel64
-MKL_INCLUDE= //opt/intel/oneapi/mkl/2021.4.0/include
-CMPLR_PATH= //opt/intel/oneapi/compiler/2021.4.0/linux/compiler/lib/intel64_lin
+MKL_LIB= //opt/intel/oneapi/mkl/2022.0.2/lib/intel64
+MKL_INCLUDE=//opt/intel/oneapi/mkl/2022.0.2/include
+CMPLR_PATH= //opt/intel/oneapi/compiler/2022.0.2/linux/compiler/lib/intel64_lin
 
 # Include a list of all the source files
 include $(CCX)/Makefile.inc
 SCCXMAIN = ccx_2.15.c
 
 # Append additional sources
-SCCXC += nonlingeo_precice.c CCXHelpers.c PreciceInterface.c
+SCCXC += nonlingeo_precice.c CCXHelpers.c PreciceInterface.c linstatic_MDO.c
 SCCXF += getflux.f getkdeltatemp.f
 
 

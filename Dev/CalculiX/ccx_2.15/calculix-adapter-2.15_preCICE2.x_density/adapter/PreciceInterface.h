@@ -83,44 +83,45 @@ typedef struct PreciceInterface {
  * A list of variables and their meaning is available in the documentation
  * ccx_2.10.pdf (page 518)
  */
-typedef struct SimulationData {
+typedef struct SimulationData 
+{
 
 	// CalculiX data
-	ITG * ialset;
-	ITG * ielmat;
-	ITG * istartset;
-	ITG * iendset;
-	char ** lakon;
-	ITG * kon;
-	ITG * ipkon;
-	ITG nset;
-	char * set;
-	double * co;
-	ITG nboun;
-	ITG nforc; //total number of forces
-	ITG * ikboun;
-	ITG * ikforc; //the DoFs are all stored here in an array in numerical order
-	ITG * ilboun;
-	ITG * ilforc; //number of the force is stored here
-	ITG * nelemload;
-	int nload;
-	char * sideload;
-	double nk;
-	ITG mt;
-	double * theta;
-	double * dtheta;
-	double * tper;
-	ITG * nmethod;
-	double * xload;
-	double * xforc; //scalar value of the force in one direction
-	double * xboun;
-	ITG * ntmat_;
-	double * vold;
-	double * veold;
-	double * fn;//values of forces read from calculix
-	double * cocon;
-	ITG * ncocon;
-	ITG * mi;
+	ITG * ialset;						/*---Member of a set or surface. This is a node for node set, an element for element set---*/
+	ITG * ielmat;						/*---Contains the material number for element i ---*/
+	ITG * istartset;					/*---Pointer to ialset containing the first set number---*/
+	ITG * iendset;						/*---Pointer to ialset containing the last set number---*/
+	char ** lakon;						/*---Containts label for element i (C3D4, C3D8...)---*/
+	ITG * kon;							/*---Containts topology of all elements---*/
+	ITG * ipkon;						/*---Points to the location in field kon preceding the topology of element i---*/
+	ITG nset;							/*---Number of sets, including surfaces---*/
+	char * set;							/*---Name of the set: User defined name---*/
+	double * co;						/*---Node coordinates---*/
+	ITG nboun;							/*---Total number of boundary conditions (Single Point Constraints)---*/	
+	ITG nforc; 							/*---Number of point loads---*/
+	ITG * ikboun;						/*---Containts all DOFs of the boundary conditions---*/
+	ITG * ikforc; 						/*---Ordered array of the DOFs corresponiding to the point loads---*/
+	ITG * ilboun;						/*---Containts all the boundary conditions---*/
+	ITG * ilforc; 						/*---Original SPC number for ikforc(i)---*/
+	ITG * nelemload;					/*---Element to which distributed load is applied----*/
+	int nload;							/*---Number of facial distributed loads---*/
+	char * sideload;					/*---Load label; indicated element size to which load is applied---*/
+	double nk;							/*---Highest node number---*/
+	ITG mt;								/*---Not sure---*/
+	double * theta;						/*---Normalized (by tper) size of all previous increments and not including present increment---*/
+	double * dtheta;					/*---Normalized (by tper) increment size---*/
+	double * tper;						/*---Use given step size---*/
+	ITG * nmethod;						/*---Flag that deifnes numerical method: 1: static linear or nonlinear, 2: frequency (linear), 3: buckling, 4: dynamic linear or non-linear, etc---*/
+	double * xload;						/*---Concentrated load in direction of idof of node "node" (global coordinates)---*/
+	double * xforc; 					/*---Scalar value of the force in one direction---*/
+	double * xboun;						/*---Magnitude of constraint at end of a step---*/
+	ITG * ntmat_;						/*---Maximum number of temperature data points for any material property for any material---*/
+	double * vold;						/*---Displacement of node j in direction i at the start of an iteration---*/
+	double * veold;						/*---Velocity of node j in direction i at the start of an iteration---*/
+	double * fn;						/*---values of forces read from calculix---*/
+	double * cocon;						/*---Conductivity coefficient k at location---*/
+	ITG * ncocon;						/*---Number of conductivity constants---*/
+	ITG * mi;							/*---Not sure---*/
 
 	// Interfaces
 	int numPreciceInterfaces;

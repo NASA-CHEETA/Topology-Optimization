@@ -109,6 +109,8 @@ void linstatic(double *co, ITG *nk, ITG **konp, ITG **ipkonp, char **lakonp,
   ITG token;
 #endif
 
+
+
   /* dummy arguments for the results call */
 
   double *veold=NULL,*accold=NULL,bet,gam,dtime,time,reltime=1.;
@@ -164,6 +166,7 @@ void linstatic(double *co, ITG *nk, ITG **konp, ITG **ipkonp, char **lakonp,
       }
       RENEW(ipobody,ITG,2*(ifreebody-1));
   }
+ 
 
   /* contact conditions */
   
@@ -479,7 +482,7 @@ void linstatic(double *co, ITG *nk, ITG **konp, ITG **ipkonp, char **lakonp,
 		  ialset,ntie,&nasym,pslavsurf,pmastsurf,mortar,clearini,
 		  ielprop,prop,&ne0,&kscale,iponoel,inoel,&network));
   }
-
+ 
   /* determining the right hand side */
 
   NNEW(b,double,*neq);
@@ -720,6 +723,7 @@ void linstatic(double *co, ITG *nk, ITG **konp, ITG **ipkonp, char **lakonp,
 	      b[nactdof[mt*(node-1)+idir]-1]=1.;
 	      
 	      /* solving the system */
+		  
 	      
 	      if(*neq>0){
 		  if(*isolver==0){
@@ -845,6 +849,7 @@ void linstatic(double *co, ITG *nk, ITG **konp, ITG **ipkonp, char **lakonp,
 
 
   }else if(*nmethod!=0){
+	  
 
     /* linear static applications */
 
@@ -898,6 +903,8 @@ void linstatic(double *co, ITG *nk, ITG **konp, ITG **ipkonp, char **lakonp,
             FORTRAN(stop,());
 #endif
     }
+
+	
 
     /* saving of ad and au for sensitivity analysis */
 

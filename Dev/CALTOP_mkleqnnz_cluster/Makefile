@@ -5,7 +5,7 @@
 #	>export OMP_NUM_THREADS=2
 # in terminal to run PARDISO with 2 cpus
 # More info in ccx user manual section 2
-
+ARPACK          = /home/prateek/Documents/GitHub/MDO/Dependencies/ARPACK
 OPT = -g -O2
 CFLAGS = -Wall $(OPT) -fopenmp -DARCH="Linux" -DARPACK -DPARDISO -DMATRIXSTORAGE -DUSE_MT=1 -DMKL_LP64 -I{MKL_INCLUDE}
 FFLAGS = -Wall $(OPT) $(OPTIONS) -I$(MKL_INCLUDE) -fopenmp
@@ -26,9 +26,11 @@ OPTIONS = -w -fno-second-underscore -fcray-pointer -x f77-cpp-input
 FPPSTOP= -x none
 
 #INTEL MKL
-MKL_LIB= /usr/local/intel/parallel_studio_xe_2018/compilers_and_libraries_2018.1.163/linux/mkl/lib/intel64_lin
-MKL_INCLUDE= /usr/local/intel/parallel_studio_xe_2018/compilers_and_libraries_2018.1.163/linux/mkl/include
-CMPLR_PATH= /usr/local/intel/parallel_studio_xe_2018/compilers_and_libraries/linux/lib/intel64_lin
+#INTEL MKL
+MKL_LIB= //opt/intel/oneapi/mkl/2022.0.2/lib/intel64
+MKL_INCLUDE=//opt/intel/oneapi/mkl/2022.0.2/include
+CMPLR_PATH= //opt/intel/oneapi/compiler/2022.0.2/linux/compiler/lib/intel64_lin
+
 
 
 .c.o :
@@ -45,7 +47,14 @@ OCCXC = $(SCCXC:.c=.o)
 OCCXMAIN = $(SCCXMAIN:.c=.o)
 
 
-LIBS= ../TOP_OPT_DEV/ARPACK/libarpack_UBUNTU.a -lpthread -lm -lc
+# OS-specific options
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Darwin)
+        LIBS += $(ARPACK)/libarpack_MAC.a
+else
+        LIBS += $(ARPACK)/libarpack_INTEL.a
+        LIBS += -lpthread -lm -lc
+endif
 
 ccx_2.15_mkleqnnz: $(OCCXMAIN) ccx_2.15_mkleqnnz.a $(LDFLAGS) $(LIBS)\
         ./date.pl; $(CC) $(CFLAGS) -c ccx_2.15.c; \

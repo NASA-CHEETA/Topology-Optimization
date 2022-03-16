@@ -1091,17 +1091,21 @@ void nonlingeo_precice(double **cop, ITG *nk, ITG **konp, ITG **ipkonp, char **l
 
   /* Adapter: Create the interfaces and initialize the coupling */
   printf("About to enter preCICE setup in Calculix with names %s and %s \n", preciceParticipantName, configFilename);
+
   Precice_Setup( configFilename, preciceParticipantName, &simulationData );
   
   /* Adapter: Give preCICE the control of the time stepping */
-  while( Precice_IsCouplingOngoing() ){
+  while( Precice_IsCouplingOngoing() )
+  {
       
       /* Adapter: Adjust solver time step */
       Precice_AdjustSolverTimestep( &simulationData );
+	  
       /* Adapter read coupling data if available */
       Precice_ReadCouplingData( &simulationData );
       
-      if(icutb==0){
+    if(icutb==0)
+		{
 	  
 	  /* previous increment converged: update the initial values */
 	  
@@ -1123,34 +1127,50 @@ void nonlingeo_precice(double **cop, ITG *nk, ITG **konp, ITG **ipkonp, char **l
           	Precice_FulfilledWriteCheckpoint();
           }
 	  
-	  for(k=0;k<*nboun;++k){xbounini[k]=xbounact[k];}
-	  if((*ithermal==1)||(*ithermal>=3)){
+	  for(k=0;k<*nboun;++k)
+	  {
+		xbounini[k]=xbounact[k];
+	  }
+	  if((*ithermal==1)||(*ithermal>=3))
+	  {
 	      for(k=0;k<*nk;++k){t1ini[k]=t1act[k];}
 	  }
-	  for(k=0;k<neq[1];++k){
+
+	  for(k=0;k<neq[1];++k)
+	  {
 	      fini[k]=f[k];
 	  }
-	  if(*nmethod==4){
-	      for(k=0;k<mt**nk;++k){
+
+	  if(*nmethod==4)
+	  {
+	    for(k=0;k<mt**nk;++k)
+		{
 		  veini[k]=veold[k];
 		  accini[k]=accold[k];
 		  fnextini[k]=fnext[k];
-	      }
-	      for(k=0;k<neq[1];++k){
+	    }
+
+	    for(k=0;k<neq[1];++k)
+		  {
 		  fextini[k]=fext[k];
 		  cvini[k]=cv[k];
 	      }
-	      if(*ithermal<2){
+
+	    if(*ithermal<2)
+		{
 		  allwkini=allwk;
 		  // MPADD start
 		  if(idamping==1)dampwkini = dampwk;
-		  for(k=0;k<4;k++){
+
+		  for(k=0;k<4;k++)
+		  {
 		    energyini[k]=energy[k];
 		  }
 		  // MPADD end
-	      }
+	    }
 	  }
-	  if(*ithermal!=2){
+	  if(*ithermal!=2)
+	  {
 	      for(k=0;k<6*mi[0]*ne0;++k){
 		  stiini[k]=sti[k];
 		  emeini[k]=eme[k];

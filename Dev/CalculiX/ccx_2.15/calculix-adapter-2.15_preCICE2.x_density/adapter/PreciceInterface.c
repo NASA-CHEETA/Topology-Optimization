@@ -23,8 +23,10 @@ void Precice_Setup( char * configFilename, char * participantName, SimulationDat
 	fflush( stdout );
 
 	// Read the YAML config file
+	
   AdapterConfig adapterConfig;
 	ConfigReader_Read( configFilename, participantName, &adapterConfig);
+	
 
   assert(adapterConfig.interfaces != NULL);
   assert(adapterConfig.preciceConfigFilename != NULL);
@@ -38,16 +40,20 @@ void Precice_Setup( char * configFilename, char * participantName, SimulationDat
 	// Create interfaces as specified in the config file
 	sim->preciceInterfaces = (struct PreciceInterface**) calloc( adapterConfig.numInterfaces, sizeof( PreciceInterface* ) );
 
-	int i;
-	for( i = 0 ; i < adapterConfig.numInterfaces; i++ )
+	for(int i = 0 ; i < adapterConfig.numInterfaces; i++ )
 	{
-    InterfaceConfig * config = adapterConfig.interfaces + i;
+    	InterfaceConfig * config = adapterConfig.interfaces + i;
+		
 		sim->preciceInterfaces[i] = malloc( sizeof( PreciceInterface ) );
+		
 		PreciceInterface_Create( sim->preciceInterfaces[i], sim, config );
+		
 	}
 
   // At this point we are done with the configuration
   AdapterConfig_Free(&adapterConfig);
+
+  
 
 	// Initialize variables needed for the coupling
 	NNEW( sim->coupling_init_v, double, sim->mt * sim->nk );
@@ -73,19 +79,23 @@ void Precice_AdjustSolverTimestep( SimulationData * sim )
 {
 	if( isSteadyStateSimulation( sim->nmethod ) )
 	{
-		printf( "Adjusting time step for steady-state step\n" );
+		printf("Adjusting time step for linear static analysis \n" );
 		fflush( stdout );
 
 		// For steady-state simulations, we will always compute the converged steady-state solution in one coupling step
+		/*
 		*sim->theta = 0;
 		*sim->tper = 1;
 		*sim->dtheta = 1;
-
+		*/
 		// Set the solver time step to be the same as the coupling time step
+		printf("Setting solver_dt (syncronization interval) to %f \n", sim->precice_dt);
 		sim->solver_dt = sim->precice_dt;
 	}
 	else
 	{
+		/*---Uncomment below for a pure dynamic solution---*/
+		/*
 		printf( "Adjusting time step for transient step\n" );
 		printf( "precice_dt dtheta = %f, dtheta = %f, solver_dt = %f\n", sim->precice_dt / *sim->tper, *sim->dtheta, fmin( sim->precice_dt, *sim->dtheta * *sim->tper ) );
 		fflush( stdout );
@@ -95,6 +105,27 @@ void Precice_AdjustSolverTimestep( SimulationData * sim )
 
 		// Compute the non-normalized time step used by preCICE
 		sim->solver_dt = ( *sim->dtheta ) * ( *sim->tper );
+
+		*/
+
+		/*---Uncomment below for a pure steady state solution---*/
+		printf( "Adjusting time step for linear static analysis\n" );
+		fflush(stdout);
+
+		/*---For steady-state simulations, we will always compute the converged steady-state solution in one coupling step---*/
+		*sim->theta = 0;      /*---Set sum of all previous increments to zero---*/
+		*sim->tper = 1;		  /*---Set step size to 1---*/
+		*sim->dtheta = 1;	  /*---Set increment size to one---*/
+
+		/*---Set the solver time step to be the same as the coupling time step---*/
+	    	
+		//sim->solver_dt = 0;
+		sim->solver_dt = sim->precice_dt;
+
+
+
+
+
 	}
 }
 
@@ -102,8 +133,10 @@ void Precice_Advance( SimulationData * sim )
 {
 	printf( "Adapter calling advance()...\n" );
 	fflush( stdout );
-
-	sim->precice_dt = precicec_advance( sim->solver_dt );
+    
+	printf("Advancing with solver dt: %f \n", sim->solver_dt);
+	sim->precice_dt = precicec_advance(1);
+	//sim->precice_dt = precicec_advance( sim->solver_dt );
 }
 
 bool Precice_IsCouplingOngoing()
@@ -138,10 +171,10 @@ void Precice_ReadIterationCheckpoint( SimulationData * sim, double * v )
 	fflush( stdout );
 
 	// Reload time
-	*( sim->theta ) = sim->coupling_init_theta;
+  //	*( sim->theta ) = sim->coupling_init_theta;
 
 	// Reload step size
-	*( sim->dtheta ) = sim->coupling_init_dtheta;
+//	*( sim->dtheta ) = sim->coupling_init_dtheta;
 
 	// Reload solution vector v
 	memcpy( v, sim->coupling_init_v, sizeof( double ) * sim->mt * sim->nk );
@@ -154,10 +187,10 @@ void Precice_WriteIterationCheckpoint( SimulationData * sim, double * v )
 	fflush( stdout );
 
 	// Save time
-	sim->coupling_init_theta = *( sim->theta );
+	//sim->coupling_init_theta = *( sim->theta );
 
 	// Save step size
-	sim->coupling_init_dtheta = *( sim->dtheta );
+//	sim->coupling_init_dtheta = *( sim->dtheta );
 
 	// Save solution vector v
 	memcpy( sim->coupling_init_v, v, sizeof( double ) * sim->mt * sim->nk );
@@ -167,11 +200,18 @@ void Precice_ReadCouplingData( SimulationData * sim )
 {
 
 	printf( "Adapter reading coupling data...\n" );
+	
 	fflush( stdout );
 
+
+    
 	PreciceInterface ** interfaces = sim->preciceInterfaces;
+
+	printf("Failing here \n");
+	
 	int numInterfaces = sim->numPreciceInterfaces;
 	int i, j;
+	
   // Extract force Data
 
 
@@ -210,13 +250,13 @@ void Precice_ReadCouplingData( SimulationData * sim )
 					setFaceHeatTransferCoefficients( interfaces[i]->faceCenterData, interfaces[i]->numElements, interfaces[i]->xloadIndices, sim->xload );
 					printf( "Reading HEAT_TRANSFER_COEFF coupling data with ID '%d'. \n",interfaces[i]->kDeltaReadDataID );
 					break;
-        case FORCES:
+        		case FORCES:
 					// Read and set forces as concentrated loads (Neumann BC)
 					precicec_readBlockVectorData( interfaces[i]->forcesDataID, interfaces[i]->numNodes, interfaces[i]->preciceNodeIDs, interfaces[i]->nodeVectorData );
 					setNodeForces( interfaces[i]->preciceNodeIDs, interfaces[i]->nodeVectorData, interfaces[i]->numNodes, interfaces[i]->dim, interfaces[i]->xforcIndices, sim->xforc);
 					printf( "Reading FORCES coupling data with ID '%d'. \n",interfaces[i]->forcesDataID );
-          int Number_nodes = interfaces[i]->numNodes;
-          printf( "Number of Interface nodes '%d'. \n", Number_nodes);
+          			int Number_nodes = interfaces[i]->numNodes;
+          			printf( "Number of Interface nodes '%d'. \n", Number_nodes);
         //    for ( int k = 0; k < 3 * Number_nodes; k++)
         //   {
       //      printf( "Nodal frc '%lf'. \n", interfaces[i]->nodeVectorData[k]);
@@ -467,7 +507,10 @@ void Precice_FreeData( SimulationData * sim )
 
 void PreciceInterface_Create( PreciceInterface * interface, SimulationData * sim, InterfaceConfig const * config )
 {
+	
 	interface->dim = precicec_getDimensions();
+
+	
 
 	// Initialize pointers as NULL
 	interface->elementIDs = NULL;
@@ -484,6 +527,8 @@ void PreciceInterface_Create( PreciceInterface * interface, SimulationData * sim
 	interface->xloadIndices = NULL;
 	interface->xforcIndices = NULL;
 
+	
+
   // Initialize data ids to -1
 	interface->temperatureDataID = -1;
 	interface->fluxDataID = -1;
@@ -497,32 +542,42 @@ void PreciceInterface_Create( PreciceInterface * interface, SimulationData * sim
 	interface->velocitiesDataID = -1;
 	interface->forcesDataID = -1;
 
+	
+
 	//Mapping Type
 	// The patch identifies the set used as interface in Calculix
 	interface->name = strdup( config->patchName );
 	// Calculix needs to know if nearest-projection mapping is implemented. config->map = 1 is for nearest-projection, config->map = 0 is for everything else
 	interface->mapNPType = config->map;
-
+    
 	// Nodes mesh
 	interface->nodesMeshID = -1;
 	interface->nodesMeshName = NULL;
-  if ( config->nodesMeshName ) {
+  if ( config->nodesMeshName ) 
+  {
     interface->nodesMeshName = strdup( config->nodesMeshName );
     PreciceInterface_ConfigureNodesMesh( interface, sim );
   }
 
+  
+
 	// Face centers mesh
 	interface->faceCentersMeshID = -1;
 	interface->faceCentersMeshName = NULL;
-  if ( config->facesMeshName ) {
+
+  if ( config->facesMeshName ) 
+  {
 	  interface->faceCentersMeshName = strdup( config->facesMeshName );
 		//Only configure a face center mesh if necesary; i.e. do not configure it for FSI simulations, also do not configure tetra faces if no face center mesh is used (as in FSI simulations)
     PreciceInterface_ConfigureFaceCentersMesh( interface, sim );
 		// Triangles of the nodes mesh (needs to be called after the face centers mesh is configured!)
     PreciceInterface_ConfigureTetraFaces( interface, sim );
-	}
+  }
+
+  
 
 	PreciceInterface_ConfigureCouplingData( interface, sim, config );
+	
 }
 
 void PreciceInterface_ConfigureFaceCentersMesh( PreciceInterface * interface, SimulationData * sim )
@@ -629,8 +684,10 @@ void PreciceInterface_ConfigureCouplingData( PreciceInterface * interface, Simul
 	int i;
 
         interface->numReadData = config->numReadData;
+		
         if (config->numReadData > 0) interface->readData = malloc( config->numReadData * sizeof( int ) );
-	for( i = 0 ; i < config->numReadData ; i++ )
+		
+	for(i = 0 ; i < config->numReadData ; i++ )
 	{
 
 		if( isEqual( config->readDataNames[i], "Temperature" ) )
@@ -666,11 +723,16 @@ void PreciceInterface_ConfigureCouplingData( PreciceInterface * interface, Simul
 		}
 		else if ( startsWith( config->readDataNames[i], "Forces" ) )
 		{
+			
 			PreciceInterface_EnsureValidNodesMeshID( interface );
 			interface->readData[i] = FORCES;
+			
 			interface->xforcIndices = malloc( interface->numNodes * 3 * sizeof( int ) );
+			
 			interface->forcesDataID = precicec_getDataID( config->readDataNames[i], interface->nodesMeshID );
+			
 			getXforcIndices( interface->nodeIDs, interface->numNodes, sim->nforc, sim->ikforc, sim->ilforc, interface->xforcIndices );
+
 			printf( "Read data '%s' found with ID # '%d'.\n", config->readDataNames[i],interface->forcesDataID );
 		}
 		else if ( startsWith( config->readDataNames[i], "Displacements" ) )
