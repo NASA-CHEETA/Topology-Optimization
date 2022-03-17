@@ -591,7 +591,7 @@ void linstatic_MDO(double *co, ITG *nk, ITG **konp, ITG **ipkonp, char **lakonp,
 
 			if(Precice_IsWriteCheckpointRequired())
     		{
-    			//Precice_WriteIterationCheckpoint( &simulationData, vold );
+    			Precice_WriteIterationCheckpoint( &simulationData, vold );
         		Precice_FulfilledWriteCheckpoint();
     		}
 
@@ -606,18 +606,15 @@ void linstatic_MDO(double *co, ITG *nk, ITG **konp, ITG **ipkonp, char **lakonp,
 			printf("\n");
 
 			/*---For implicit calculations, load the previous displacement state---*/
-			
 			if(Precice_IsReadCheckpointRequired())
 			{
-    		//	Precice_ReadIterationCheckpoint(&simulationData, v );
+    			Precice_ReadIterationCheckpoint(&simulationData, v );
         		Precice_FulfilledReadCheckpoint();
     		}
-			
 
     		memcpy(&sti[0],&stx[0],sizeof(double)*6*mi[0]*ne0);
 
     		++*kode;
-
 
 		}	// Linear static loop ends here
 
