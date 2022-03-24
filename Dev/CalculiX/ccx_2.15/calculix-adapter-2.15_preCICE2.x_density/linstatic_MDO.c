@@ -18,6 +18,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
+#include "omp.h"
 #include "CalculiX.h"
 #include <time.h>
 
@@ -37,6 +38,64 @@
    #include "pardiso.h"
 #endif
 
+
+/**
+ * @brief gkdas2 Add displacement v to updated coordinate list. 
+ * TO DO: Verify for 2D
+ * @param coUpdated 
+ * @param v  : latest displacement vector
+ * @param nk : number of nodes
+ * @param mt : dof index. 1 temperature + 3 displacement
+ */
+void updateCO(double *coUpdated, double *v, int nk, int mt)
+{	
+	int i, a, b;
+	int num_cpus=0;
+	char *env;
+
+	// get num of threads declaration, if any
+	env = getenv("OMP_NUM_THREADS");
+    if(num_cpus==0){
+    	if (env)
+      		num_cpus = atoi(env);
+    	if (num_cpus < 1) {
+      		num_cpus=1;
+    	}
+    }
+
+	#pragma omp parallel for num_threads(num_cpus) private(a,b)
+	for(i = 0; i<= nk-1; i++)
+	{
+		int a = 3*i;
+		int b = a + i + 1;
+		coUpdated[a]+=v[b];
+		coUpdated[a+1]+=v[b+1];
+		coUpdated[a+2]+=v[b+2];
+	}
+}
+
+/**
+ * @brief gkdas2  Write the updated coordinate list to updatedCOORD.csv. O
+ * TO DO: Verify for 2D
+ * @param coUpdated 
+ * @param nk 
+ * @param mt 
+ */
+void writeUpdatedCO(double *coUpdated, int nk, int mt)
+{
+    FILE *fp;
+
+    fp = fopen("updatedCOORD.csv", "w+");
+	
+	fprintf(fp,"NodeID,x,y,z \n");
+    for(int i = 0; i <= nk-1; i++)
+    {
+        fprintf(fp, "%d ,%0.6lf, %0.6lf, %0.6lf \n", i+1, coUpdated[3*i], coUpdated[3*i+1], coUpdated[3*i+2]);
+    }
+    fclose(fp);
+}
+
+/* gkdas2: linstaic_MDO begins here  */
 void linstatic_MDO(double *co, ITG *nk, ITG **konp, ITG **ipkonp, char **lakonp,
 	     ITG *ne, 
 	     ITG *nodeboun, ITG *ndirboun, double *xboun, ITG *nboun, 
@@ -113,8 +172,15 @@ void linstatic_MDO(double *co, ITG *nk, ITG **konp, ITG **ipkonp, char **lakonp,
   ITG token;
  #endif
 
-  /* dummy arguments for the results call */
+	/** @gkdas2
+	 * Create a new vector to store updated coordinates and copy initial coordinates
+	 */
+	double *coUpdated = NULL;
+	NNEW(coUpdated,double,3**nk);
+	memcpy(coUpdated, co, 3**nk*sizeof(double));
 
+
+  /* dummy arguments for the results call */
   double *veold=NULL,*accold=NULL,bet,gam,dtime,time,reltime=1.;
 
   irow=*irowp;
@@ -658,7 +724,11 @@ void linstatic_MDO(double *co, ITG *nk, ITG **konp, ITG **ipkonp, char **lakonp,
     	iitsta=1;
     	FORTRAN(writesta,(istep,&iinc,&icutb,&iitsta,ttime,&time,&dtime));
 
-    	SFREE(v);
+
+		/* gkdas2: add displacement to coordinates*/
+		updateCO(coUpdated, v, *nk, mt);
+    	
+		SFREE(v);
 		SFREE(stn);
 		SFREE(inum);
     	SFREE(b);
@@ -705,6 +775,9 @@ void linstatic_MDO(double *co, ITG *nk, ITG **konp, ITG **ipkonp, char **lakonp,
 
     /* Adapter: Free the memory */
   	Precice_FreeData( &simulationData );
- 
+
+	/* gkdas2: write final updated coordinates and free memory */
+	writeUpdatedCO(coUpdated, *nk, mt); 
+	SFREE(coUpdated);	
   return;
 }
