@@ -83,11 +83,11 @@ void Precice_AdjustSolverTimestep( SimulationData * sim )
 		fflush( stdout );
 
 		// For steady-state simulations, we will always compute the converged steady-state solution in one coupling step
-		/*
+		
 		*sim->theta = 0;
 		*sim->tper = 1;
-		*sim->dtheta = 1;
-		*/
+		//*sim->dtheta = 1;
+		
 		// Set the solver time step to be the same as the coupling time step
 		printf("Setting solver_dt (syncronization interval) to %f \n", sim->precice_dt);
 		sim->solver_dt = sim->precice_dt;
@@ -95,7 +95,7 @@ void Precice_AdjustSolverTimestep( SimulationData * sim )
 	else
 	{
 		/*---Uncomment below for a pure dynamic solution---*/
-		/*
+		
 		printf( "Adjusting time step for transient step\n" );
 		printf( "precice_dt dtheta = %f, dtheta = %f, solver_dt = %f\n", sim->precice_dt / *sim->tper, *sim->dtheta, fmin( sim->precice_dt, *sim->dtheta * *sim->tper ) );
 		fflush( stdout );
@@ -106,26 +106,8 @@ void Precice_AdjustSolverTimestep( SimulationData * sim )
 		// Compute the non-normalized time step used by preCICE
 		sim->solver_dt = ( *sim->dtheta ) * ( *sim->tper );
 
-		*/
-
-		/*---Uncomment below for a pure steady state solution---*/
-		printf( "Adjusting time step for linear static analysis\n" );
-		fflush(stdout);
-
-		/*---For steady-state simulations, we will always compute the converged steady-state solution in one coupling step---*/
-		*sim->theta = 0;      /*---Set sum of all previous increments to zero---*/
-		*sim->tper = 1;		  /*---Set step size to 1---*/
-		*sim->dtheta = 1;	  /*---Set increment size to one---*/
-
-		/*---Set the solver time step to be the same as the coupling time step---*/
-	    	
-		//sim->solver_dt = 0;
+		
 		sim->solver_dt = sim->precice_dt;
-
-
-
-
-
 	}
 }
 
@@ -171,10 +153,10 @@ void Precice_ReadIterationCheckpoint( SimulationData * sim, double * v )
 	fflush( stdout );
 
 	// Reload time
-  //	*( sim->theta ) = sim->coupling_init_theta;
+  	*( sim->theta ) = sim->coupling_init_theta;
 
 	// Reload step size
-//	*( sim->dtheta ) = sim->coupling_init_dtheta;
+	*( sim->dtheta ) = sim->coupling_init_dtheta;
 
 	// Reload solution vector v
 	memcpy( v, sim->coupling_init_v, sizeof( double ) * sim->mt * sim->nk );
@@ -187,10 +169,10 @@ void Precice_WriteIterationCheckpoint( SimulationData * sim, double * v )
 	fflush( stdout );
 
 	// Save time
-	//sim->coupling_init_theta = *( sim->theta );
+     sim->coupling_init_theta = *( sim->theta );
 
 	// Save step size
-//	sim->coupling_init_dtheta = *( sim->dtheta );
+	sim->coupling_init_dtheta = *( sim->dtheta );
 
 	// Save solution vector v
 	memcpy( sim->coupling_init_v, v, sizeof( double ) * sim->mt * sim->nk );
@@ -331,9 +313,9 @@ void Precice_ReadCouplingData( SimulationData * sim )
 
           printf("\n");
 		  printf("---------------------------------------------------------------------------\n");
-		  printf("Average aerodynamic traction in x: %f \n", Fx_Avg);
-		  printf("Average aerodynamic traction in y: %f \n", Fy_Avg);
-		  printf("Average aerodynamic traction in z: %f \n", Fz_Avg);
+		  printf("Average aerodynamic traction in x: %lf \n", Fx_Avg);
+		  printf("Average aerodynamic traction in y: %lf \n", Fy_Avg);
+		  printf("Average aerodynamic traction in z: %lf \n", Fz_Avg);
 		  printf("---------------------------------------------------------------------------\n");
 		  printf("\n");
 

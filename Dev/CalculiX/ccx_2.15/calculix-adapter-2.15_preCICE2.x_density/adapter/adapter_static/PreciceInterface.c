@@ -207,7 +207,7 @@ void Precice_ReadCouplingData( SimulationData * sim )
     
 	PreciceInterface ** interfaces = sim->preciceInterfaces;
 
-	printf("Failing here \n");
+	
 	
 	int numInterfaces = sim->numPreciceInterfaces;
 	int i, j;

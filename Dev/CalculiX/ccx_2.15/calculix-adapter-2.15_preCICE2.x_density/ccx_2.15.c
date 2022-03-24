@@ -1182,7 +1182,8 @@ while(istat>=0) {
 if(preciceUsed) 
 {
   int isStaticOrDynamic = (nmethod == 1) || (nmethod == 4);
-  int isDynamic = nmethod == 1;
+  int isDynamic = nmethod == 4;
+  int isStatic  = nmethod == 1;
   int isThermalAnalysis = ithermal[0] >= 2;
         
   if(isStaticOrDynamic && isThermalAnalysis) 
@@ -1225,7 +1226,7 @@ if(preciceUsed)
   /*---MDA/O Conditions---*/
   else if(isDynamic && !isThermalAnalysis) 
   {          
-    printf("Starting static aeroelastic analysis");
+    printf("Starting dynamic aeroelastic analysis");
             
     if(iperturb[1]==0) 
     {
@@ -1234,7 +1235,7 @@ if(preciceUsed)
       mpcinfo[0]=memmpc_;mpcinfo[1]=mpcfree;mpcinfo[2]=icascade;
       mpcinfo[3]=maxlenmpc;
 
-      /*          
+                
       nonlingeo_precice(&co,&nk,&kon,&ipkon,&lakon,&ne,nodeboun,ndirboun,xboun,&nboun, 
 	    &ipompc,&nodempc,&coefmpc,&labmpc,&nmpc,nodeforc,ndirforc,xforc,
       &nforc,&nelemload,&sideload,xload,&nload, 
@@ -1259,7 +1260,7 @@ if(preciceUsed)
 	    &ifacecount,typeboun,&islavsurf,&pslavsurf,&clearini,&nmat,
 	    xmodal,&iaxial,&inext,&nprop,&network,orname,vel,&nef,
 	    velo,veloo,preciceParticipantName,configFilename,rhoPhys,&pstiff);
-      */
+      /*
 
 	    linstatic_MDO(co,&nk,&kon,&ipkon,&lakon,&ne,nodeboun,ndirboun,xboun,&nboun, 
 	     ipompc,nodempc,coefmpc,labmpc,&nmpc,nodeforc,ndirforc,xforc,
@@ -1280,7 +1281,7 @@ if(preciceUsed)
 	     orname,rhoPhys,&pstiff,preciceParticipantName,configFilename,ikforc,ilforc);
 
 	for(i=0;i<3;i++){nzsprevstep[i]=nzs[i];}
-
+	*/
       // char *orname, double *design, double *penal, char *preciceParticipantName, char *configFilename);                      
       memmpc_=mpcinfo[0];mpcfree=mpcinfo[1];icascade=mpcinfo[2];
       maxlenmpc=mpcinfo[3];
@@ -1328,6 +1329,37 @@ if(preciceUsed)
       printf("ERROR: This simulation type is not available with preCICE");
       exit(0);
     }
+  }
+
+  else if (isStatic && !isThermalAnalysis)
+  {
+    printf("Starting dynamic aeroelastic analysis using linear solver \n");
+    mpcinfo[0]=memmpc_;mpcinfo[1]=mpcfree;mpcinfo[2]=icascade;
+    mpcinfo[3]=maxlenmpc;
+
+    linstatic_MDO(co,&nk,&kon,&ipkon,&lakon,&ne,nodeboun,ndirboun,xboun,&nboun, 
+	     ipompc,nodempc,coefmpc,labmpc,&nmpc,nodeforc,ndirforc,xforc,
+             &nforc, nelemload,sideload,xload,&nload, 
+	     nactdof,&icol,jq,&irow,neq,&nzl,&nmethod,ikmpc, 
+	     ilmpc,ikboun,ilboun,elcon,nelcon,rhcon,nrhcon,
+	     alcon,nalcon,alzero,&ielmat,&ielorien,&norien,orab,&ntmat_,
+             t0,t1,t1old,ithermal,prestr,&iprestr, vold,iperturb,sti,nzs,
+	     &kode,filab,eme,&iexpl,plicon,
+             nplicon,plkcon,nplkcon,&xstate,&npmat_,matname,
+	     &isolver,mi,&ncmat_,&nstate_,cs,&mcs,&nkon,&ener,
+             xbounold,xforcold,xloadold,amname,amta,namta,
+             &nam,iamforc,iamload,iamt1,iamboun,&ttime,
+             output,set,&nset,istartset,iendset,ialset,&nprint,prlab,
+             prset,&nener,trab,inotr,&ntrans,fmpc,cbody,ibody,xbody,&nbody,
+	     xbodyold,timepar,thicke,jobnamec,tieset,&ntie,&istep,&nmat,
+	     ielprop,prop,typeboun,&mortar,mpcinfo,tietol,ics,&icontact,
+	     orname,rhoPhys,&pstiff,preciceParticipantName,configFilename,ikforc,ilforc);
+
+    for(i=0;i<3;i++){nzsprevstep[i]=nzs[i];}
+	
+      // char *orname, double *design, double *penal, char *preciceParticipantName, char *configFilename);                      
+    memmpc_=mpcinfo[0];mpcfree=mpcinfo[1];icascade=mpcinfo[2];
+    maxlenmpc=mpcinfo[3];
   }
         
   else
