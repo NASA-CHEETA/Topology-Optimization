@@ -66,8 +66,8 @@ void updateCO(double *coUpdated, double *v, int nk, int mt)
 	#pragma omp parallel for num_threads(num_cpus) private(a,b)
 	for(i = 0; i<= nk-1; i++)
 	{
-		int a = 3*i;
-		int b = a + i + 1;
+		a = 3*i;
+		b = a + i + 1;
 		coUpdated[a]+=v[b];
 		coUpdated[a+1]+=v[b+1];
 		coUpdated[a+2]+=v[b+2];
