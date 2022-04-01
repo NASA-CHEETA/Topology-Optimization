@@ -147,9 +147,11 @@ void getNodeDisplacementDeltas( ITG * nodes, ITG numNodes, int dim, double * v, 
 	{
 		int nodeIdx = nodes[i] - 1; //The node Id starts with 1, not with 0, therefore, decrement is necessary
 		for( j = 0 ; j < dim ; j++ )
-    {
-      displacementDeltas[dim * i + j] = v[nodeIdx * mt + j + 1] - v_init[nodeIdx * mt + j + 1];
-    }
+    	{
+      		//displacementDeltas[dim * i + j] = v[nodeIdx * mt + j + 1] - v_init[nodeIdx * mt + j + 1];
+	  		displacementDeltas[dim * i + j] = v[nodeIdx * mt + j + 1];
+
+    	}
 	}
 }
 

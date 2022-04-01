@@ -464,6 +464,13 @@ void Precice_WriteCouplingData( SimulationData * sim )
 					break;
 				case DISPLACEMENTDELTAS:
 					getNodeDisplacementDeltas( interfaces[i]->nodeIDs, interfaces[i]->numNodes, interfaces[i]->dim, sim->vold, sim->coupling_init_v, sim->mt, interfaces[i]->nodeVectorData );
+
+					for(int k = 0 ; k < interfaces[i]->numNodes ; k++ )
+					{
+						int nodeIdx = interfaces[i]->nodeIDs[k] - 1; //The node Id starts with 1, not with 0, therefore, decrement is necessary
+	  					printf("DispX %lf, DispY %lf, DispZ %lf \n", sim->vold[nodeIdx * sim->mt + 0 + 1], sim->vold[nodeIdx * sim->mt + 1 + 1], sim->vold[nodeIdx * sim->mt + 2 + 1]);
+					}
+
 					precicec_writeBlockVectorData( interfaces[i]->displacementDeltasDataID, interfaces[i]->numNodes, interfaces[i]->preciceNodeIDs, interfaces[i]->nodeVectorData );
 					printf( "Writing DISPLACEMENTDELTAS coupling data with ID '%d'. \n",interfaces[i]->displacementDeltasDataID );
 					break;
@@ -625,6 +632,17 @@ void PreciceInterface_ConfigureNodesMesh( PreciceInterface * interface, Simulati
 
 	interface->nodeCoordinates = malloc( interface->numNodes * interface->dim * sizeof( double ) );
 	getNodeCoordinates( interface->nodeIDs, interface->numNodes, interface->dim, sim->co, sim->vold, sim->mt, interface->nodeCoordinates );
+
+	/*-------------------------------------------------------------------------------------------------------------------------------------*/
+	/*-------------------------------------------------------------------------------------------------------------------------------------*/
+
+	for( int i = 0 ; i < interface->numNodes ; i++ )
+	{
+		int nodeIdx = interface->nodeIDs[i] - 1;
+
+		printf("X POS %lf YPOS %lf ZPOS %lf \ncd", sim->co[nodeIdx *3 + 0], sim->co[nodeIdx *3 + 1], sim->co[nodeIdx *3 + 2] );
+	}
+
 
 	if( interface->nodesMeshName != NULL )
 	{

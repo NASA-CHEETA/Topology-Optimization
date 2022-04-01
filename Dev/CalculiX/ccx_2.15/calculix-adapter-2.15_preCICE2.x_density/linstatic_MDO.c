@@ -886,7 +886,8 @@ void linstatic_MDO(double *co, ITG *nk, ITG **konp, ITG **ipkonp, char **lakonp,
 
 	/* gkdas2: write final updated coordinates and free memory */
 	printf("Writing displaced coordinates to file\n");
-	writeUpdatedCO(coUpdated, *nk, mt); 
+	writeUpdatedCO(coUpdated, *nk, mt);
+//	 writeUpdatedCO(co, *nk, mt);
 	printf("Writing baseline coordinates\n");
 	writeBaselineCO(co, *nk,mt);
 	SFREE(coUpdated);	
