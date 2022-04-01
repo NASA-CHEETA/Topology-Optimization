@@ -95,6 +95,20 @@ void writeUpdatedCO(double *coUpdated, int nk, int mt)
     fclose(fp);
 }
 
+void writeBaselineCO(double *co, int nk, int mt)
+{
+    FILE *fp;
+
+    fp = fopen("BaselineCOORD.csv", "w+");
+	
+	fprintf(fp,"NodeID,x,y,z \n");
+    for(int i = 0; i <= nk-1; i++)
+    {
+        fprintf(fp, "%d ,%0.6lf, %0.6lf, %0.6lf \n", i+1, co[3*i], co[3*i+1], co[3*i+2]);
+    }
+    fclose(fp);
+}
+
 /* gkdas2: linstaic_MDO begins here  */
 void linstatic_MDO(double *co, ITG *nk, ITG **konp, ITG **ipkonp, char **lakonp,
 	     ITG *ne, 
@@ -178,6 +192,8 @@ void linstatic_MDO(double *co, ITG *nk, ITG **konp, ITG **ipkonp, char **lakonp,
 	double *coUpdated = NULL;
 	NNEW(coUpdated,double,3**nk);
 	memcpy(coUpdated, co, 3**nk*sizeof(double));
+
+
 
 
   /* dummy arguments for the results call */
@@ -308,7 +324,7 @@ void linstatic_MDO(double *co, ITG *nk, ITG **konp, ITG **ipkonp, char **lakonp,
 	  /*---Adapter: Adjust solver time step---*/
     	Precice_AdjustSolverTimestep( &simulationData );
 
-      /*---See if couling data (aerodynamic tractions)need to be read---*/
+      /*---See if coupling data (aerodynamic tractions)need to be read---*/
 	  	Precice_ReadCouplingData(&simulationData);
 
   	  /*---allocating a field for the instantaneous amplitude---*/
@@ -646,18 +662,24 @@ void linstatic_MDO(double *co, ITG *nk, ITG **konp, ITG **ipkonp, char **lakonp,
     		SFREE(eei);
     		if(*nener==1)
 			{
-				SFREE(stiini);SFREE(emeini);SFREE(enerini);
+				SFREE(stiini);
+				SFREE(emeini);
+				SFREE(enerini);
 			}
 
 			/*---Copy current v into vold---*/
 
     		memcpy(&vold[0],&v[0],sizeof(double)*mt**nk);
 
-			/*---Save the current displcement state for implicit calculations---*/
+			/* gkdas2: add displacement to coordinates*/
+			printf("Updating coordinates to heap\n");
+			updateCO(coUpdated, v, *nk, mt);
+
+			/*---Save the current displacement state for implicit calculations---*/
 
 			if(Precice_IsWriteCheckpointRequired())
     		{
-    			//Precice_WriteIterationCheckpoint( &simulationData, vold );
+    		//	Precice_WriteIterationCheckpoint( &simulationData, vold );
         		Precice_FulfilledWriteCheckpoint();
     		}
 
@@ -667,22 +689,31 @@ void linstatic_MDO(double *co, ITG *nk, ITG **konp, ITG **ipkonp, char **lakonp,
 			/*---Advance the coupling state---*/
 			Precice_Advance(&simulationData);
 
+			/*---Write these deformed coordinates to coUpdated---*/
+
+	
+
+
+
 			printf("\n");
 			printf("-----------------------------------------------------------------------------------------");
 			printf("\n");
+			
 
 			/*---For implicit calculations, load the previous displacement state---*/
 			
 			if(Precice_IsReadCheckpointRequired())
 			{
-    		//	Precice_ReadIterationCheckpoint(&simulationData, v );
+    			//Precice_ReadIterationCheckpoint(&simulationData, v );
         		Precice_FulfilledReadCheckpoint();
     		}
 			
 
     		memcpy(&sti[0],&stx[0],sizeof(double)*6*mi[0]*ne0);
-
+		
     		++*kode;
+
+			
 
 
 		}	// Linear static loop ends here
@@ -725,8 +756,11 @@ void linstatic_MDO(double *co, ITG *nk, ITG **konp, ITG **ipkonp, char **lakonp,
     	FORTRAN(writesta,(istep,&iinc,&icutb,&iitsta,ttime,&time,&dtime));
 
 
-		/* gkdas2: add displacement to coordinates*/
-		updateCO(coUpdated, v, *nk, mt);
+
+
+
+
+
     	
 		SFREE(v);
 		SFREE(stn);
@@ -739,6 +773,8 @@ void linstatic_MDO(double *co, ITG *nk, ITG **konp, ITG **ipkonp, char **lakonp,
     	if(strcmp1(&filab[2697],"ME  ")==0) SFREE(emn);
     	if(strcmp1(&filab[522],"ENER")==0) SFREE(enern);
     	if(strcmp1(&filab[2175],"CONT")==0) SFREE(cdn);
+
+		
 
   	} // Implicit loop ends here
 
@@ -777,7 +813,10 @@ void linstatic_MDO(double *co, ITG *nk, ITG **konp, ITG **ipkonp, char **lakonp,
   	Precice_FreeData( &simulationData );
 
 	/* gkdas2: write final updated coordinates and free memory */
+	printf("Writing displaced coordinates to file\n");
 	writeUpdatedCO(coUpdated, *nk, mt); 
+	printf("Writing baseline coordinates\n");
+	writeBaselineCO(co, *nk,mt);
 	SFREE(coUpdated);	
   return;
 }

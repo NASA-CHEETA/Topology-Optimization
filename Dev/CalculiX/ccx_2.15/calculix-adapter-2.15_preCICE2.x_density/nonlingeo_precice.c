@@ -19,6 +19,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include "CalculiX.h"
+#include "omp.h"
 #ifdef SPOOLES
    #include "spooles.h"
 #endif
@@ -36,6 +37,62 @@
 #include "adapter/PreciceInterface.h"
 
 #define max(a,b) ((a) >= (b) ? (a) : (b))
+
+/**
+ * @brief gkdas2 Add displacement v to updated coordinate list. 
+ * TO DO: Verify for 2D
+ * @param coUpdated 
+ * @param v  : latest displacement vector
+ * @param nk : number of nodes
+ * @param mt : dof index. 1 temperature + 3 displacement
+ */
+void NLupdateCO(double *coUpdated, double *v, int nk, int mt)
+{	
+	int i, a, b;
+	int num_cpus=0;
+	char *env;
+
+	// get num of threads declaration, if any
+	env = getenv("OMP_NUM_THREADS");
+    if(num_cpus==0){
+    	if (env)
+      		num_cpus = atoi(env);
+    	if (num_cpus < 1) {
+      		num_cpus=1;
+    	}
+    }
+
+	#pragma omp parallel for num_threads(num_cpus) private(a,b)
+	for(i = 0; i<= nk-1; i++)
+	{
+		a = 3*i;
+		b = a + i + 1;
+		coUpdated[a]+=v[b];
+		coUpdated[a+1]+=v[b+1];
+		coUpdated[a+2]+=v[b+2];
+	}
+}
+
+/**
+ * @brief gkdas2  Write the updated coordinate list to updatedCOORD.csv. O
+ * TO DO: Verify for 2D
+ * @param coUpdated 
+ * @param nk 
+ * @param mt 
+ */
+void NLwriteUpdatedCO(double *coUpdated, int nk, int mt)
+{
+    FILE *fp;
+
+    fp = fopen("updatedCOORD.csv", "w+");
+	
+	fprintf(fp,"NodeID,x,y,z \n");
+    for(int i = 0; i <= nk-1; i++)
+    {
+        fprintf(fp, "%d ,%0.6lf, %0.6lf, %0.6lf \n", i+1, coUpdated[3*i], coUpdated[3*i+1], coUpdated[3*i+2]);
+    }
+    fclose(fp);
+}
 
 void nonlingeo_precice(double **cop, ITG *nk, ITG **konp, ITG **ipkonp, char **lakonp,
 	     ITG *ne,
@@ -193,6 +250,13 @@ void nonlingeo_precice(double **cop, ITG *nk, ITG **konp, ITG **ipkonp, char **l
   tmin=&timepar[2];
   tmax=&timepar[3];
   tincf=&timepar[4];
+
+  	/** @gkdas2
+	 * Create a new vector to store updated coordinates and copy initial coordinates
+	 */
+	double *coUpdated = NULL;
+	NNEW(coUpdated,double,3**nk);
+	memcpy(coUpdated, co, 3**nk*sizeof(double));
 
   /* Adapter: Put all the CalculiX data that is needed for the coupling into an array */
   struct SimulationData simulationData = {
@@ -2700,6 +2764,9 @@ void nonlingeo_precice(double **cop, ITG *nk, ITG **konp, ITG **ipkonp, char **l
             Precice_FulfilledReadCheckpoint();
         }
 
+		/* gkdas2: add displacement to coordinates*/
+		updateCO(coUpdated, v, *nk, mt);
+
 		SFREE(v);SFREE(stn);SFREE(stx);SFREE(fn);SFREE(inum);
     }
    
@@ -2922,6 +2989,8 @@ void nonlingeo_precice(double **cop, ITG *nk, ITG **konp, ITG **ipkonp, char **l
 	  FORTRAN(uout,(v,mi,ithermal,filab,kode));
 #endif
       }
+
+
       
       SFREE(v);SFREE(fn);SFREE(stn);SFREE(inum);SFREE(stx);
       if(*ithermal>1){SFREE(qfn);}
@@ -3267,6 +3336,11 @@ void nonlingeo_precice(double **cop, ITG *nk, ITG **konp, ITG **ipkonp, char **l
   
   /* Adapter: Free the memory */
   Precice_FreeData( &simulationData );
+
+/* gkdas2: write final updated coordinates and free memory */
+writeUpdatedCO(coUpdated, *nk, mt); 
+SFREE(coUpdated);	
+
 
   return;
 }

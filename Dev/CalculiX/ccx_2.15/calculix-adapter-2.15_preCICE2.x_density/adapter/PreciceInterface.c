@@ -105,7 +105,6 @@ void Precice_AdjustSolverTimestep( SimulationData * sim )
 
 		// Compute the non-normalized time step used by preCICE
 		sim->solver_dt = ( *sim->dtheta ) * ( *sim->tper );
-
 		
 		sim->solver_dt = sim->precice_dt;
 	}
@@ -117,8 +116,8 @@ void Precice_Advance( SimulationData * sim )
 	fflush( stdout );
     
 	printf("Advancing with solver dt: %f \n", sim->solver_dt);
-	sim->precice_dt = precicec_advance(1);
-	//sim->precice_dt = precicec_advance( sim->solver_dt );
+	//sim->precice_dt = precicec_advance(1);
+	sim->precice_dt = precicec_advance( sim->solver_dt );
 }
 
 bool Precice_IsCouplingOngoing()
@@ -159,7 +158,7 @@ void Precice_ReadIterationCheckpoint( SimulationData * sim, double * v )
 	*( sim->dtheta ) = sim->coupling_init_dtheta;
 
 	// Reload solution vector v
-	memcpy( v, sim->coupling_init_v, sizeof( double ) * sim->mt * sim->nk );
+	//memcpy( v, sim->coupling_init_v, sizeof( double ) * sim->mt * sim->nk );
 }
 
 void Precice_WriteIterationCheckpoint( SimulationData * sim, double * v )
@@ -174,14 +173,14 @@ void Precice_WriteIterationCheckpoint( SimulationData * sim, double * v )
 	// Save step size
 	sim->coupling_init_dtheta = *( sim->dtheta );
 
-	// Save solution vector v
-	memcpy( sim->coupling_init_v, v, sizeof( double ) * sim->mt * sim->nk );
+	// Save solution vector v (memcpy(dest, source, size))
+	//memcpy( sim->coupling_init_v, v, sizeof( double ) * sim->mt * sim->nk );
 }
 
 void Precice_ReadCouplingData( SimulationData * sim )
 {
 
-	printf( "Adapter reading coupling data...\n" );
+	printf( "Reading aerodynamic tractions ...\n" );
 	
 	fflush( stdout );
 
@@ -332,7 +331,6 @@ void Precice_ReadCouplingData( SimulationData * sim )
             fprintf(fptr, " %lf , %lf , %lf  , %lf \n", NID[aa], Fx[aa], Fy[aa], Fz[aa]);
           }
            fclose(fptr);
-
 
         //  for ( int k = 0; k < Number_nodes; k++)
         //  {
