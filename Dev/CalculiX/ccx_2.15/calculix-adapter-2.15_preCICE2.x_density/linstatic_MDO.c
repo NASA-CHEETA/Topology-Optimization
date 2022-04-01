@@ -39,6 +39,75 @@
 #endif
 
 
+
+/**********************************************************************/
+/**
+ * @brief gkdas2: Get the ith set name from SET list
+ * 
+ * @param string 
+ * @param position 
+ * @param length 
+ * @return *char 
+ */
+char *getSubstring2(char *string, int position, int length)
+{
+   char *p;
+   int c;
+ 
+   p = malloc(length+1);
+   if (p == NULL)
+   {
+      printf("Unable to allocate memory in getSubstring.\n");
+      exit(1);
+   }
+ 
+   for (c = 0; c < length; c++)
+   {
+      *(p+c) = *(string+position-1);      
+      string++;  
+   }
+   *(p+c) = '\0';
+   return p;
+}
+
+/**
+ * @brief gkdas2: write surface node set NSurface displacements
+ * 
+ * @param nset 
+ * @param ialset 
+ * @param set 
+ * @param istartset 
+ * @param iendset 
+ */
+void writeSurfNodes(ITG nset, ITG *ialset, char *set, ITG *istartset, 
+					ITG *iendset, double *v)
+{
+	char surfaceSet[] = "NSURFACEN"; // ccx converts all strings to uppercase, adds N for nodes
+	char *dummyNameset;
+	ITG istart;
+	ITG iend;
+	ITG nodeNumber;
+	
+	for(int i = 0; i< nset; i++)
+	{	
+		dummyNameset = getSubstring2(set, i*81+1,strlen(surfaceSet));
+		if (strcmp(dummyNameset, surfaceSet) == 0)
+		{	
+			printf("For node set: %s\n", dummyNameset);
+			istart = istartset[i]-1;
+			iend = iendset[i]-1;
+
+			for (ITG iset = istart; iset <= iend;iset++)
+			{	
+				nodeNumber = ialset[iset];
+				printf("Disp: Node: %d, UX: %.9lf, UY: %.9lf, UZ: %.9lf \n", nodeNumber, 
+							v[4*(nodeNumber-1)+1], v[4*(nodeNumber-1)+2], v[4*(nodeNumber-1)+3]); // nodeNumber is 1 based
+			}			
+		}	
+	}
+	SFREE(dummyNameset);
+}
+
 /**
  * @brief gkdas2 Add displacement v to updated coordinate list. 
  * TO DO: Verify for 2D
@@ -674,6 +743,9 @@ void linstatic_MDO(double *co, ITG *nk, ITG **konp, ITG **ipkonp, char **lakonp,
 			/* gkdas2: add displacement to coordinates*/
 			printf("Updating coordinates to heap\n");
 			updateCO(coUpdated, v, *nk, mt);
+
+			printf("Displacement of surface nodes:\n");
+			writeSurfNodes(*nset, ialset, set, istartset, iendset, v);
 
 			/*---Save the current displacement state for implicit calculations---*/
 
