@@ -178,6 +178,8 @@ void writeBaselineCO(double *co, int nk, int mt)
     fclose(fp);
 }
 
+
+
 /* gkdas2: linstaic_MDO begins here  */
 void linstatic_MDO(double *co, ITG *nk, ITG **konp, ITG **ipkonp, char **lakonp,
 	     ITG *ne, 
@@ -290,6 +292,8 @@ void linstatic_MDO(double *co, ITG *nk, ITG **konp, ITG **ipkonp, char **lakonp,
 
   ne0=*ne;
 
+
+
   /*---Asign values to CCX structure to hold coupling variables---*/
   struct SimulationData simulationData = 
   {
@@ -388,8 +392,11 @@ void linstatic_MDO(double *co, ITG *nk, ITG **konp, ITG **ipkonp, char **lakonp,
 
 	Precice_Setup( configFilename, preciceParticipantName, &simulationData );
 
+	  int counter = 0;
+
 	while (Precice_IsCouplingOngoing() )
 	{
+		counter = counter + 1;
 	  /*---Adapter: Adjust solver time step---*/
     	Precice_AdjustSolverTimestep( &simulationData );
 
@@ -740,12 +747,10 @@ void linstatic_MDO(double *co, ITG *nk, ITG **konp, ITG **ipkonp, char **lakonp,
 
     		memcpy(&vold[0],&v[0],sizeof(double)*mt**nk);
 
-			/* gkdas2: add displacement to coordinates*/
-			printf("Updating coordinates to heap\n");
-			updateCO(coUpdated, v, *nk, mt);
+		
 
-			printf("Displacement of surface nodes:\n");
-			writeSurfNodes(*nset, ialset, set, istartset, iendset, v);
+			//printf("Displacement of surface nodes:\n");
+			//writeSurfNodes(*nset, ialset, set, istartset, iendset, v);
 
 			/*---Save the current displacement state for implicit calculations---*/
 
@@ -755,11 +760,29 @@ void linstatic_MDO(double *co, ITG *nk, ITG **konp, ITG **ipkonp, char **lakonp,
         		Precice_FulfilledWriteCheckpoint();
     		}
 
+			/* gkdas2: add displacement to coordinates*/
+
+
+
 			/*---Transmit the interface discplacement state---*/ 
 			Precice_WriteCouplingData(&simulationData);
 
+
+            
+			/* gkdas2: write final updated coordinates and free memory */
+			//printf("Writing displaced coordinates to file\n");
+			//writeUpdatedCO(coUpdated, *nk, mt);
+		
+
+	
+
 			/*---Advance the coupling state---*/
 			Precice_Advance(&simulationData);
+
+
+		
+
+	
 
 			/*---Write these deformed coordinates to coUpdated---*/
 
@@ -789,6 +812,15 @@ void linstatic_MDO(double *co, ITG *nk, ITG **konp, ITG **ipkonp, char **lakonp,
 
 
 		}	// Linear static loop ends here
+
+
+            
+			printf("-----------------------------------------------------------------\n");
+			printf("Updating coordinates for iteration %d\n", counter);
+			updateCO(coUpdated, v, *nk, mt);
+			printf("-----------------------------------------------------------------\n");
+			  
+		  
 
    		/* for cyclic symmetric sectors: duplicating the results */
 
@@ -826,8 +858,6 @@ void linstatic_MDO(double *co, ITG *nk, ITG **konp, ITG **ipkonp, char **lakonp,
 
     	iitsta=1;
     	FORTRAN(writesta,(istep,&iinc,&icutb,&iitsta,ttime,&time,&dtime));
-
-
 
 
 
@@ -884,9 +914,13 @@ void linstatic_MDO(double *co, ITG *nk, ITG **konp, ITG **ipkonp, char **lakonp,
     /* Adapter: Free the memory */
   	Precice_FreeData( &simulationData );
 
+
 	/* gkdas2: write final updated coordinates and free memory */
-	printf("Writing displaced coordinates to file\n");
-	writeUpdatedCO(coUpdated, *nk, mt);
+			printf("Writing displaced coordinates to file\n");
+			writeUpdatedCO(coUpdated, *nk, mt);
+
+
+
 //	 writeUpdatedCO(co, *nk, mt);
 	printf("Writing baseline coordinates\n");
 	writeBaselineCO(co, *nk,mt);

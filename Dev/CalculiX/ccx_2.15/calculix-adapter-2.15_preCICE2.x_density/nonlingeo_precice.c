@@ -1187,6 +1187,7 @@ void nonlingeo_precice(double **cop, ITG *nk, ITG **konp, ITG **ipkonp, char **l
 
 	  if( Precice_IsWriteCheckpointRequired() )
       	  {
+			printf("WRITING ITERATION CHECKPOINT\n");
           	Precice_WriteIterationCheckpoint( &simulationData, vini );
           	Precice_FulfilledWriteCheckpoint();
           }
@@ -2747,15 +2748,23 @@ void nonlingeo_precice(double **cop, ITG *nk, ITG **konp, ITG **ipkonp, char **l
               islavsurf,ielprop,prop,energyini,energy,&kscale,iponoel,
               inoel,nener,orname,network,ipobody,xbodyact,ibody,typeboun);
 
-	simulationData.fn = fn;
+	    simulationData.fn = fn;
         memcpy(&vold[0],&v[0],sizeof(double)*mt**nk);
 
         Precice_WriteCouplingData( &simulationData );
         /* Adapter: Advance the coupling */
+			/* gkdas2: add displacement to coordinates*/
+		//printf("UPDATING COORDINATES\n");
+		//NLupdateCO(coUpdated, v, *nk, mt);
+
+
         Precice_Advance( &simulationData );
+
         /* Adapter: If the coupling does not converge, read the checkpoint */
         if( Precice_IsReadCheckpointRequired() )
         {
+
+			printf("READING ITERATION CHECKPOINT");
             if( *nmethod == 4 )
             {
                 Precice_ReadIterationCheckpoint( &simulationData, vold );
@@ -2764,11 +2773,17 @@ void nonlingeo_precice(double **cop, ITG *nk, ITG **konp, ITG **ipkonp, char **l
             Precice_FulfilledReadCheckpoint();
         }
 
-		/* gkdas2: add displacement to coordinates*/
-		updateCO(coUpdated, v, *nk, mt);
+	
 
 		SFREE(v);SFREE(stn);SFREE(stx);SFREE(fn);SFREE(inum);
     }
+
+	
+
+	printf("AERO-ELASTIC CONVERGED! \n");
+
+	printf("UPDATING COORDINATES\n");
+	NLupdateCO(coUpdated, vold, *nk, mt);
    
     /* printing the energies (only for dynamic calculations) */
 
@@ -3338,7 +3353,7 @@ void nonlingeo_precice(double **cop, ITG *nk, ITG **konp, ITG **ipkonp, char **l
   Precice_FreeData( &simulationData );
 
 /* gkdas2: write final updated coordinates and free memory */
-writeUpdatedCO(coUpdated, *nk, mt); 
+NLwriteUpdatedCO(coUpdated, *nk, mt); 
 SFREE(coUpdated);	
 
 

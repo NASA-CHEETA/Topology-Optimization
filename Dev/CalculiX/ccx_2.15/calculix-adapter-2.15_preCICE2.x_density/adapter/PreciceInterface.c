@@ -118,6 +118,7 @@ void Precice_Advance( SimulationData * sim )
 	printf("Advancing with solver dt: %f \n", sim->solver_dt);
 	//sim->precice_dt = precicec_advance(1);
 	sim->precice_dt = precicec_advance( sim->solver_dt );
+
 }
 
 bool Precice_IsCouplingOngoing()
@@ -158,7 +159,7 @@ void Precice_ReadIterationCheckpoint( SimulationData * sim, double * v )
 	*( sim->dtheta ) = sim->coupling_init_dtheta;
 
 	// Reload solution vector v
-	//memcpy( v, sim->coupling_init_v, sizeof( double ) * sim->mt * sim->nk );
+	memcpy( v, sim->coupling_init_v, sizeof( double ) * sim->mt * sim->nk );
 }
 
 void Precice_WriteIterationCheckpoint( SimulationData * sim, double * v )
@@ -174,7 +175,7 @@ void Precice_WriteIterationCheckpoint( SimulationData * sim, double * v )
 	sim->coupling_init_dtheta = *( sim->dtheta );
 
 	// Save solution vector v (memcpy(dest, source, size))
-	//memcpy( sim->coupling_init_v, v, sizeof( double ) * sim->mt * sim->nk );
+	memcpy( sim->coupling_init_v, v, sizeof( double ) * sim->mt * sim->nk );
 }
 
 void Precice_ReadCouplingData( SimulationData * sim )
@@ -472,6 +473,8 @@ void Precice_WriteCouplingData( SimulationData * sim )
 					}
 
 					precicec_writeBlockVectorData( interfaces[i]->displacementDeltasDataID, interfaces[i]->numNodes, interfaces[i]->preciceNodeIDs, interfaces[i]->nodeVectorData );
+
+
 					printf( "Writing DISPLACEMENTDELTAS coupling data with ID '%d'. \n",interfaces[i]->displacementDeltasDataID );
 					break;
 				case VELOCITIES:
@@ -850,6 +853,7 @@ void PreciceInterface_ConfigureCouplingData( PreciceInterface * interface, Simul
 		}
 	}
 }
+
 
 void PreciceInterface_FreeData( PreciceInterface * preciceInterface )
 {
