@@ -49,6 +49,8 @@ def callrunccx(x, grad, ccxversion, inp, volfrac, rmin, penalty, compfile,  plot
 
     # You have the densityfsi.dat. Now perform the fsi with this densities. Finger crossed!
 
+
+
     # FSI has converged by now. Use the values to get compliance and sensitivities. Call ccx in full mode
     caltop_mode = 1  # For standard mode. DO NOT CHANGE
     runCCX(ccxversion, inp, penalty, rmin, volfrac, itertop,

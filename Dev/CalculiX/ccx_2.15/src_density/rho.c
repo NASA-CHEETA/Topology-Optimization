@@ -23,7 +23,7 @@ FILE *rhoFile;
         rhoFile=fopen("densityfsi.dat","r"); //open in read mode
         if(rhoFile==NULL) //if rhoFile doesn't exist already,create
         {
-            printf("\n...density.dat not found, initialized to 1");
+            printf("\nNOTE: densityfsi.dat not found, initialized to 1 . \n");
             rhoFile=fopen("densityfsi.dat","w");
             for (i=0;i<ne;i++)
                 {
@@ -31,11 +31,12 @@ FILE *rhoFile;
                 }
         }
 
-        else{//if file exists,
+        else{//if file exists,           
             for (i=0;i<ne;i++)
                 {
                     fscanf(rhoFile,"%lf",&design[i]);
                 }
+            printf("\nFiltered rho values read from densityfsi.dat .\n"); 
             }
 
         fclose(rhoFile);
