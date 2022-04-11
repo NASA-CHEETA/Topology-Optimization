@@ -1472,8 +1472,7 @@ int main(int argc, char *argv[])
           NNEW(filternnzElems, ITG, ne_);
           NNEW(designFiltered, double, ne_);
 
-          printf("\nCalculating Density Filter... \n");
-
+          printf("\nCalculating Density Filter...\n");
           time_t start, end;
           start = time(NULL);
 
@@ -1481,10 +1480,10 @@ int main(int argc, char *argv[])
                         &rmin, &filternnz,
                         FilterMatrixs, rowFilters, colFilters, filternnzElems, itertop, &fnnzassumed, caltop_mode);
 
-          printf("\n Density Filter Obtained \n");
+          printf("\nDensity Filter Obtained \n");
 
           end = time(NULL);
-          printf("\n Time taken for density filter %.2f seconds \n",
+          printf("\nTime taken for density filter %.2f seconds \n",
                  difftime(end, start));
 
           filterVector(&ipkon, design, designFiltered, FilterMatrixs, filternnzElems, rowFilters, colFilters, &ne, &ttime, timepar, &fnnzassumed, &qfilter); // Filter Design variables
@@ -1506,12 +1505,12 @@ int main(int argc, char *argv[])
           }
           fclose(rho_file);
 
-          printf("\ndensityfsi.dat written. Exiting now! \n");
+          printf("\nNOTE: caltop_mode = 2 was supplied. Filtered design variables written to densityfsi.dat. Exiting now! \n");
           exit(0);
         }
 
         printf("\n***********************\n\n");
-        printf("\n For stiffness, penalty considered= %f \n", pstiff);
+        printf("\nFor stiffness, penalty considered= %f \n", pstiff);
         time_t startl, endl;
         startl = time(NULL);
         linstatic(co, &nk, &kon, &ipkon, &lakon, &ne, nodeboun, ndirboun, xboun, &nboun,
@@ -1533,7 +1532,7 @@ int main(int argc, char *argv[])
                   orname, rhoPhys, &pstiff);
 
         endl = time(NULL);
-        printf("\n Time taken for linstatic.c is %.2f seconds \n",
+        printf("\nTime taken for linstatic.c is %.2f seconds \n",
                difftime(endl, startl));
 
         for (i = 0; i < 3; i++)
@@ -1933,6 +1932,7 @@ int main(int argc, char *argv[])
       fprintf(rho_file, "%.15f  ,  %.15f \n", design[iii], rhoPhys[iii]);
     }
     fclose(rho_file);
+    printf("\nNote: Following files have been written: sens_compliance.dat, sens_volume.dat, objectives.dat, rhos.dat.\n");
 
     SFREE(nactdof);
     SFREE(icol);

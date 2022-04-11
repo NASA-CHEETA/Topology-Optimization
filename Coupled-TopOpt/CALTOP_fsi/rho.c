@@ -20,7 +20,7 @@ FILE *rhoFile;
 
     if(rhoFile==NULL) //if rhoFile doesn't exist already,create
     {
-        printf("\n...density.dat not found, initialized to 1");
+        printf("\nNOTE: density.dat not found, initialized to 1");
         rhoFile=fopen("density.dat","w");
         for (i=0;i<ne;i++)
             {
@@ -34,6 +34,7 @@ FILE *rhoFile;
                 fscanf(rhoFile,"%lf",&design[i]);
             }
         }
+        printf("\nUnifiltered design variables read from density.dat\n"); 
 
         fclose(rhoFile);
 }

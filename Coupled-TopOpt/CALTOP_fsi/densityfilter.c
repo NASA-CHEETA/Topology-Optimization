@@ -47,7 +47,7 @@ void densityfilter(double *co, ITG *nk, ITG **konp, ITG **ipkonp, char **lakonp,
 
   ne0 = *ne;
 
-  if (itertop == 1 && caltop_mode > 0)
+  if (itertop == 1 && caltop_mode > 1)
   {
 
     double *elCentroid = NULL;         // pointer to store Centroid of elements
@@ -55,7 +55,7 @@ void densityfilter(double *co, ITG *nk, ITG **konp, ITG **ipkonp, char **lakonp,
 
     // calculate Centroid of elements
     mafillsmmain_filter(co, nk, kon, ipkon, lakon, ne, ttime, &time, mortar, &ne0, elCentroid);
-    printf("\n ...Element centroids calculated... \n");
+    printf("\nElement centroids calculated.\n");
 
     /*      FILE *elCentroid_file;
      *     elCentroid_file=fopen("Centroidindensityfilter.dat","w"); //open in write mode
@@ -68,7 +68,7 @@ void densityfilter(double *co, ITG *nk, ITG **konp, ITG **ipkonp, char **lakonp,
     // calculate Density Filter for elements
     mafillsmmain_filter2(ipkon, rmin, filternnz, ne, ttime, &time, &ne0, elCentroid,
                          FilterMatrixs, rowFilters, colFilters, filternnzElems, fnnzassumed);
-    printf("\n ...Distance matrix calculated... \n");
+    printf("\nDistance matrix calculated.\n");
     SFREE(elCentroid);
 
     FILE *drow;
@@ -78,7 +78,7 @@ void densityfilter(double *co, ITG *nk, ITG **konp, ITG **ipkonp, char **lakonp,
 
     // Go through each nnz and copy to respective other half, must be in serial
     FORTRAN(mafillsm_expandfilter, (FilterMatrixs, filternnzElems, rowFilters, colFilters, ne, ttime, &time, &ne0, fnnzassumed));
-    printf("\n ...Filter matrix expanded... \n");
+    printf("\nFilter matrix expanded.\n");
 
     //           FILE *drow; FILE *dcol; FILE *dnnz; FILE *dval;
 
@@ -139,31 +139,19 @@ void densityfilter(double *co, ITG *nk, ITG **konp, ITG **ipkonp, char **lakonp,
       fprintf(dnnz, "%d\n", filternnzElems[iii]);
       if (filternnzElems[iii] > *fnnzassumed)
       {
-        printf("\n ******* \n *************** \n *WARNING: Number of elements,%d inside filter radius for element %d exceeds %d \n *************\n **********\n ",
+        printf("\n*******\n***************\n*WARNING: Number of elements,%d inside filter radius for element %d exceeds %d \n *************\n **********\n ",
                filternnzElems[iii], iii, *fnnzassumed);
-        printf(" \n *CAUTION: ADJUST FILTER SETTING \n");
+        printf("\n*CAUTION: ADJUST FILTER SETTING. SOLUTION WILL BE INCORRECT \n");
         exit(1);
       }
     }
     fclose(dnnz);
-    /*To write a consolidated filter file
-                FILE *filter_file2;
-                filter_file2=fopen("filter.dat","w"); //open in write mode
-                for(int iii=0;iii<*fnnzassumed * ne0;iii++){
-                      if(FilterMatrixs[iii]>0){
-                        fprintf(filter_file2,"%d , %d , %.15f\n",rowFilters[iii],colFilters[iii],FilterMatrixs[iii]);
-                        }
-                  }
-                fclose(filter_file2);
-
-
-                printf("\n ...Density filter written to a file... \n");
-    */
+    printf("\n Density filter matrix written in following files: drow.dat, dcol.dat, dval.dat, dnnz.dat\n");
   }
   else
   {
 
-    printf("Reading density filter matrix from file");
+    printf("\nReading density filter matrix from file...\n");
 
     // Read non zeros in each row from dnnz.dat and calculate total nnzs
     *filternnz = 0; // initialize
@@ -217,7 +205,7 @@ void densityfilter(double *co, ITG *nk, ITG **konp, ITG **ipkonp, char **lakonp,
     }
     else
     {
-      perror("Error reading dcol.dat");
+      perror("\nError reading dcol.dat\n");
     }
 
     FILE *droww;
