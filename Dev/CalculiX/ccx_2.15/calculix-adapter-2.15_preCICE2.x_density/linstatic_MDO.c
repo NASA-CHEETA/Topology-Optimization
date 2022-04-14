@@ -756,7 +756,7 @@ void linstatic_MDO(double *co, ITG *nk, ITG **konp, ITG **ipkonp, char **lakonp,
 
 			if(Precice_IsWriteCheckpointRequired())
     		{
-    		//	Precice_WriteIterationCheckpoint( &simulationData, vold );
+    			Precice_WriteIterationCheckpoint( &simulationData, vold );
         		Precice_FulfilledWriteCheckpoint();
     		}
 
@@ -799,7 +799,7 @@ void linstatic_MDO(double *co, ITG *nk, ITG **konp, ITG **ipkonp, char **lakonp,
 			
 			if(Precice_IsReadCheckpointRequired())
 			{
-    			//Precice_ReadIterationCheckpoint(&simulationData, v );
+    			Precice_ReadIterationCheckpoint(&simulationData, v );
         		Precice_FulfilledReadCheckpoint();
     		}
 			
@@ -813,13 +813,14 @@ void linstatic_MDO(double *co, ITG *nk, ITG **konp, ITG **ipkonp, char **lakonp,
 
 		}	// Linear static loop ends here
 
-
+			/*
             
 			printf("-----------------------------------------------------------------\n");
 			printf("Updating coordinates for iteration %d\n", counter);
 			updateCO(coUpdated, v, *nk, mt);
 			printf("-----------------------------------------------------------------\n");
-			  
+
+			*/  
 		  
 
    		/* for cyclic symmetric sectors: duplicating the results */
@@ -880,6 +881,11 @@ void linstatic_MDO(double *co, ITG *nk, ITG **konp, ITG **ipkonp, char **lakonp,
 
   	} // Implicit loop ends here
 
+	updateCO(coUpdated, vold, *nk, mt);
+
+
+
+
 
   	
 
@@ -916,8 +922,8 @@ void linstatic_MDO(double *co, ITG *nk, ITG **konp, ITG **ipkonp, char **lakonp,
 
 
 	/* gkdas2: write final updated coordinates and free memory */
-			printf("Writing displaced coordinates to file\n");
-			writeUpdatedCO(coUpdated, *nk, mt);
+	printf("Writing displaced coordinates to file\n");
+	writeUpdatedCO(coUpdated, *nk, mt);
 
 
 

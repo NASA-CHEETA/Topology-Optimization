@@ -156,7 +156,7 @@ void Precice_ReadIterationCheckpoint( SimulationData * sim, double * v )
   	*( sim->theta ) = sim->coupling_init_theta;
 
 	// Reload step size
-	*( sim->dtheta ) = sim->coupling_init_dtheta;
+//	*( sim->dtheta ) = sim->coupling_init_dtheta;
 
 	// Reload solution vector v
 	memcpy( v, sim->coupling_init_v, sizeof( double ) * sim->mt * sim->nk );
@@ -172,7 +172,7 @@ void Precice_WriteIterationCheckpoint( SimulationData * sim, double * v )
      sim->coupling_init_theta = *( sim->theta );
 
 	// Save step size
-	sim->coupling_init_dtheta = *( sim->dtheta );
+//	sim->coupling_init_dtheta = *( sim->dtheta );
 
 	// Save solution vector v (memcpy(dest, source, size))
 	memcpy( sim->coupling_init_v, v, sizeof( double ) * sim->mt * sim->nk );
@@ -465,12 +465,15 @@ void Precice_WriteCouplingData( SimulationData * sim )
 					break;
 				case DISPLACEMENTDELTAS:
 					getNodeDisplacementDeltas( interfaces[i]->nodeIDs, interfaces[i]->numNodes, interfaces[i]->dim, sim->vold, sim->coupling_init_v, sim->mt, interfaces[i]->nodeVectorData );
-
+					
+					/*
 					for(int k = 0 ; k < interfaces[i]->numNodes ; k++ )
 					{
 						int nodeIdx = interfaces[i]->nodeIDs[k] - 1; //The node Id starts with 1, not with 0, therefore, decrement is necessary
 	  					printf("DispX %lf, DispY %lf, DispZ %lf \n", sim->vold[nodeIdx * sim->mt + 0 + 1], sim->vold[nodeIdx * sim->mt + 1 + 1], sim->vold[nodeIdx * sim->mt + 2 + 1]);
 					}
+
+					*/
 
 					precicec_writeBlockVectorData( interfaces[i]->displacementDeltasDataID, interfaces[i]->numNodes, interfaces[i]->preciceNodeIDs, interfaces[i]->nodeVectorData );
 
@@ -639,12 +642,15 @@ void PreciceInterface_ConfigureNodesMesh( PreciceInterface * interface, Simulati
 	/*-------------------------------------------------------------------------------------------------------------------------------------*/
 	/*-------------------------------------------------------------------------------------------------------------------------------------*/
 
+	/*
 	for( int i = 0 ; i < interface->numNodes ; i++ )
 	{
 		int nodeIdx = interface->nodeIDs[i] - 1;
 
 		printf("X POS %lf YPOS %lf ZPOS %lf \ncd", sim->co[nodeIdx *3 + 0], sim->co[nodeIdx *3 + 1], sim->co[nodeIdx *3 + 2] );
 	}
+
+	*/
 
 
 	if( interface->nodesMeshName != NULL )
