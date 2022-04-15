@@ -95,7 +95,7 @@ int main(int argc, char *argv[])
          *velo = NULL, *veloo = NULL, *design = NULL, *rhoPhys = NULL;
 
   double *gradCompl = NULL, *elCompl = NULL, *elCG = NULL, *eleVol = NULL; // gradCompl=compliance gradient of each element,elcompl=compliance of elements
-  double *designFiltered = NULL, *gradComplFiltered = NULL, *eleVolFiltered = NULL;
+  double *designFiltered = NULL, *gradComplFiltered = NULL, *eleVolFiltered = NULL, *gradVol = NULL;
 
   double ctrl[56] = {4.5, 8.5, 9.5, 16.5, 10.5, 4.5, 0., 5.5, 0., 0., 0.25, 0.5, 0.75, 0.85, 0., 0., 1.5, 0., 0.005, 0.01, 0., 0., 0.02, 1.e-5, 1.e-3, 1.e-8, 1.e30, 1.5, 0.25, 1.01, 1., 1., 5.e-7, 5.e-7, 5.e-7, 5.e-7, 5.e-7, 5.e-7, 5.e-7, -1., 1.e20, 1.e20, 1.e20, 1.e20, 1.e20, 1.e20, 1.e20, 1.5, 0.5, 20.5, 1.5, 1.5, 0.001, 0.1, 100.5, 60.5};
 
@@ -105,7 +105,7 @@ int main(int argc, char *argv[])
   double pSupplied = 0.0, pstiff = 0.0, rmin = 0.000000000001, volfrac = 1.00, qfilter = 3;
 
   ITG itertop = 1;       // counter for iteration number in topology optimization
-  ITG fnnzassumed = 500; // We assume 500 non zeros in each row of filtermatrix
+  ITG fnnzassumed = 300; // We assume 500 non zeros in each row of filtermatrix
   // filternnz=total number of nonzeros in filtermatrix,filternnzElem=no of nonzeros in each row of filtermatrix
   ITG filternnz = 0; // For actual nnz values in filter matrix
 
@@ -116,7 +116,7 @@ int main(int argc, char *argv[])
   ITG *rowFilters = NULL; // Pointer to row index
   ITG *colFilters = NULL; // Pointer to column matrix
 
-  ITG caltop_mode = 1; // 2: write densityfsi.dat and exit
+  ITG caltop_mode = 3; // 2: write densityfsi.dat and exit
 
 #ifdef CALCULIX_MPI
   MPI_Init(&argc, &argv);
@@ -143,7 +143,7 @@ int main(int argc, char *argv[])
       if (strcmp1(argv[i], "-v") == 0)
       {
         printf("\nThis is Version 2.15 modified for Topology Optimization with SIMP method: Ghanendra Kumar Das,CDILab, AE, UIUC\n\n");
-        printf("Last edit:9 April, 2022 to add -m flag \n\n");
+        printf("Last edit:15 April, 2022 to add passive element sets \n\n");
         FORTRAN(stop, ());
       }
     }
@@ -1475,18 +1475,21 @@ int main(int argc, char *argv[])
           printf("\nCalculating Density Filter...\n");
           time_t start, end;
           start = time(NULL);
-
           densityfilter(co, &nk, &kon, &ipkon, &lakon, &ne, &ttime, timepar, &mortar,
                         &rmin, &filternnz,
                         FilterMatrixs, rowFilters, colFilters, filternnzElems, itertop, &fnnzassumed, caltop_mode);
 
           printf("\nDensity Filter Obtained \n");
-
           end = time(NULL);
-          printf("\nTime taken for density filter %.2f seconds \n",
-                 difftime(end, start));
+
+          printf("\nTime taken for density filter %.2f seconds \n", difftime(end, start));
 
           filterVector(&ipkon, design, designFiltered, FilterMatrixs, filternnzElems, rowFilters, colFilters, &ne, &ttime, timepar, &fnnzassumed, &qfilter); // Filter Design variables
+
+          /*  Account for passive elements. The values of passive elements are reassigned to 1, with derivative correction later */
+          printf("Correcting the filtering for passive elements, if any. \n");
+          elementPassiveTreatment(nset, ialset, set, istartset, iendset, designFiltered, 1.0);
+
           rhoPhys = designFiltered;
         }
         else
@@ -1837,13 +1840,13 @@ int main(int argc, char *argv[])
     {
       printf("\n For compliance, penalty=%f \n", pstiff);
 
-      NNEW(gradCompl, double, ne_); // allocate memory to gradcompliance, initialize to 0
-      NNEW(elCompl, double, ne_);   // allocate memory to compliance, initialize to 0
-      NNEW(elCG, double, 3 * ne_);  // allocate memory to element CG, initialize to 0
-      NNEW(eleVol, double, ne_);    // allocate memory to element volume, initialize to 0
-
+      NNEW(gradCompl, double, ne_);         // allocate memory to gradcompliance, initialize to 0
+      NNEW(elCompl, double, ne_);           // allocate memory to compliance, initialize to 0
+      NNEW(elCG, double, 3 * ne_);          // allocate memory to element CG, initialize to 0
+      NNEW(eleVol, double, ne_);            // allocate memory to element volume, initialize to 0
       NNEW(gradComplFiltered, double, ne_); // allocate memory to gradcompliance, initialize to 0
       NNEW(eleVolFiltered, double, ne_);    // allocate memory to element volume, initialize to 0
+      NNEW(gradVol, double, ne_);           // allocate memory to element volume gradient, initialize to 0, for passive treatments
 
       time_t starts, ends;
       starts = time(NULL);
@@ -1866,8 +1869,17 @@ int main(int argc, char *argv[])
                   &nobject, &objectset, &istat, orname, nzsprevstep, &nlabel, physcon,
                   jobnamef, rhoPhys, &pstiff, gradCompl, elCompl, elCG, eleVol);
 
+      /*  Account for passive elements in compliance gradient. The values of dC/drho for passive elements are reassigned to 0 */
+      printf("\nApplying chain rule for gradient of passive elements in Compliance, if any. \n");
+      elementPassiveTreatment(nset, ialset, set, istartset, iendset, gradCompl, 0);
       filterVector(&ipkon, gradCompl, gradComplFiltered, FilterMatrixs, filternnzElems, rowFilters, colFilters, &ne, &ttime, timepar, &fnnzassumed, &qfilter); // Filter Compliance sensitivity
-      filterVector(&ipkon, eleVol, eleVolFiltered, FilterMatrixs, filternnzElems, rowFilters, colFilters, &ne, &ttime, timepar, &fnnzassumed, &qfilter);       // Filter volume sensitivity
+
+      // Gradient of volume
+      dVoldRhoPhys(eleVol, gradVol, ne);
+      printf("\nApplying chain rule for gradient of passive elements in total volume, if any. \n");
+      elementPassiveTreatment(nset, ialset, set, istartset, iendset, gradVol, 0);
+      filterVector(&ipkon, gradVol, eleVolFiltered, FilterMatrixs, filternnzElems, rowFilters, colFilters, &ne, &ttime, timepar, &fnnzassumed, &qfilter); // Filter volume sensitivity
+
       ends = time(NULL);
       printf("Time taken for sensitivity.c is %.2f seconds \n",
              difftime(ends, starts));
@@ -2124,6 +2136,7 @@ int main(int argc, char *argv[])
   SFREE(rowFilters);
   SFREE(colFilters);
   SFREE(gradCompl);
+  SFREE(gradVol);
   SFREE(elCompl);
   SFREE(eleVol);
   SFREE(elCG);

@@ -58,6 +58,11 @@
 #endif
 
 void rho(double *design, int ne);
+void elementPassiveTreatment(ITG nset, ITG *ialset, char *set, ITG *istartset, 
+					ITG *iendset, double *vector, double setToValue);				
+char *getSubstring2(char *string, int position, int length);					
+void dVoldRhoPhys(double *eleVol, double *gradVol, ITG ne);
+
 
 void FORTRAN(actideacti, (char *set, ITG *nset, ITG *istartset, ITG *iendset,
 						  ITG *ialset, char *objectset, ITG *ipkon, ITG *ibject,

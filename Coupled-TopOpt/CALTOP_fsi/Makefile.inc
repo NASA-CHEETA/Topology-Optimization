@@ -908,6 +908,7 @@ correctfluxmain.c \
 correctvelmain.c \
 dfdbj.c \
 dgmresmain.c \
+dVoldRhoPhys.c \
 dyna.c \
 dynacont.c \
 dynboun.c \
@@ -915,6 +916,7 @@ electromagnetics.c \
 elemChecker.c \
 elementcpuload.c \
 elementcpuload_density.c \
+elementPassiveTreatment.c \
 expand.c \
 external.c \
 extrapol_dpelmain.c \
@@ -939,6 +941,7 @@ genrandmain.c \
 getglobalresults.c \
 getlocalresults.c \
 getSystemCPUs.c \
+getSubstring2.c \
 hrk_udmain.c \
 hro_udmain.c \
 hrt_udmain.c \
