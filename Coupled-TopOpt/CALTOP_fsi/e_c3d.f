@@ -132,7 +132,7 @@
       tvar(2)=ttime+time
 !
       summass=0.d0
-      k_min = 1e-10
+      k_min = 1e-8
       rho_c = 0.15
       grav_flag = 0
 !

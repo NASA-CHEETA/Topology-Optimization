@@ -150,7 +150,7 @@
       xcg=0.d0
       ycg=0.d0
       zcg=0.d0
-      k_min = 1e-10
+      k_min = 1e-8
       rho_c = 0.15
       grav_flag = 0
 
