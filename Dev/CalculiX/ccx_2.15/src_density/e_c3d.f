@@ -63,7 +63,8 @@
      &  layer,kspt,jltyp,iflag,iperm(60),m,ipompc(*),nodempc(3,*),
      &  nmpc,ikmpc(*),ilmpc(*),iscale,nstate_,ne0,iselect(6),kscale,
      &  istartset(*),iendset(*),ialset(*),ntie,integerglob(*),nasym,
-     &  nplicon(0:ntmat_,*),nplkcon(0:ntmat_,*),npmat_,nopered
+     &  nplicon(0:ntmat_,*),nplkcon(0:ntmat_,*),npmat_,nopered,
+     &  grav_flag
 !
       real*8 co(3,*),xl(3,26),shp(4,26),xs2(3,7),veold(0:mi(2),*),
      &  s(60,60),w(3,3),p1(3),p2(3),bodyf(3),bodyfx(3),ff(60),
@@ -83,7 +84,8 @@
      &  plicon(0:2*npmat_,ntmat_,*),plkcon(0:2*npmat_,ntmat_,*),
      &  xstiff(27,mi(1),*),plconloc(802),dtime,ttime,time,tvar(2),
      &  sax(60,60),ffax(60),gs(8,4),a,stress(6),stre(3,3),
-     &  pslavsurf(3,*),pmastsurf(6,*),xmass,rhoi,penal, rho_c
+     &  pslavsurf(3,*),pmastsurf(6,*),xmass,rhoi,penal, k_min,
+     &  rho_c
 !
       intent(in) co,kon,lakonl,p1,p2,omx,bodyfx,nbody,
      &  nelem,elcon,nelcon,rhcon,nrhcon,alcon,nalcon,alzero,
@@ -103,9 +105,6 @@
 !
       include "gauss.f"
 !
-!     cutoff for rho
-      rho_c = 0.1
-
       ifaceq=reshape((/4,3,2,1,11,10,9,12,
      &            5,6,7,8,13,14,15,16,
      &            1,2,6,5,9,18,13,17,
@@ -133,6 +132,9 @@
       tvar(2)=ttime+time
 !
       summass=0.d0
+      k_min = 1e-10
+      rho_c = 0.15
+      grav_flag = 0
 !
       indexe=ipkon(nelem)
 c     Bernhardi start
@@ -463,6 +465,7 @@ c     Bernhardi end
 !
             if(rhsi.eq.1) then
                if(nbody.ne.0) then
+                  grav_flag = 1
 !
                   xmass=rhcon(1,1,imat)
 !
@@ -809,6 +812,7 @@ c            call orthotropic(elas,anisox)
          om=omx*rho
          if(rhsi.eq.1) then
             if(nbody.ne.0) then
+               grav_flag = 1
                do ii=1,3
                   bodyf(ii)=bodyfx(ii)*rho
                enddo
@@ -1733,27 +1737,36 @@ c        write(6,*) alp, sume, summ, factore, factorm
 !
 
       do i=1,3*nope
-        do j=1,3*nope
-          if(rhoi.gt.rho_c) then
-            s(i,j)=(rhoi**penal)*s(i,j)
-          else
-            s(i,j)=(rhoi*rho_c**penal)*s(i,j) 
-          endif
-        enddo
+         do j=1,3*nope
+            sm(i,j)=(rhoi)*sm(i,j)
+         enddo
       enddo
 
+      if(grav_flag.eq.1) then
+!           penalize stiffness  in presence of gravity 
+         do i=1,3*nope
+            do j=1,3*nope
+               if(rhoi.gt.rho_c) then
+                  s(i,j)=k_min+(rhoi**penal)*s(i,j)
+               else
+                  s(i,j)=k_min+rhoi*(rho_c**(penal-1))*s(i,j) 
+                  endif
+               enddo
+            enddo
+
+!           penalize body force in presence of gravity
+            do i=1, 3*nope
+               ff(i)=ff(i)*rhoi
+            enddo
+               
+      else 
+!     penalize stiffness in absence of gravity
       do i=1,3*nope
-        do j=1,3*nope
-          sm(i,j)=(rhoi)*sm(i,j)
-        enddo
+         do j=1,3*nope
+            s(i,j)=k_min+(rhoi**penal)*s(i,j)
+         enddo
       enddo
-      return
-
-
-      return
-
-
-
+      endif
 
       return
       end

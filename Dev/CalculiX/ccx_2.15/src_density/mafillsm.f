@@ -220,15 +220,11 @@ c           ndof=ichar(lakon(i)(6:6))-48
                  p2(3)=xbody(7,j)
 !     
 !          assigning gravity forces
-!          gkdas2: gravity force is parameterized by rhoi 
-!                 To do: add cutoff rhoi for stability
-              elseif(ibody(1,j).eq.2) then
-                 bodyf(1)=bodyf(1)+(rhoi**penal_mass)
-     &                    *xbody(1,j)*xbody(2,j)                
-                 bodyf(2)=bodyf(2)+(rhoi**penal_mass)
-     &                    *xbody(1,j)*xbody(3,j)
-                 bodyf(3)=bodyf(3)+(rhoi**penal_mass)
-     &                    *xbody(1,j)*xbody(4,j)
+!
+               elseif(ibody(1,j).eq.2) then
+                  bodyf(1)=bodyf(1)+xbody(1,j)*xbody(2,j)
+                  bodyf(2)=bodyf(2)+xbody(1,j)*xbody(3,j)
+                  bodyf(3)=bodyf(3)+xbody(1,j)*xbody(4,j)
 !     
 !          assigning newton gravity forces
 !   
