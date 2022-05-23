@@ -309,6 +309,9 @@ void Precice_ReadCouplingData( SimulationData * sim )
           }
 		  Fz_Avg = (sum_z/Count_z);
 
+		  /*---Compute total traction magnitude action on the elastic body---*/
+		  double traction_Tot = sum_x + sum_y + sum_z;
+
 		  /*---Print average Forces in all dimensions---*/
 
           printf("\n");
@@ -318,6 +321,14 @@ void Precice_ReadCouplingData( SimulationData * sim )
 		  printf("Average aerodynamic traction in z: %lf \n", Fz_Avg);
 		  printf("---------------------------------------------------------------------------\n");
 		  printf("\n");
+
+
+		  printf("\n");
+		  printf("---------------------------------------------------------------------------\n");
+		  printf("Total aerodynamic traction: %lf \n", traction_Tot;
+		  printf("---------------------------------------------------------------------------\n");
+		  printf("\n");
+
 
           FILE *fptr;
           fptr = fopen("Forces.csv", "w");

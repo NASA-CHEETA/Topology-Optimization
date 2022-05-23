@@ -282,7 +282,7 @@ double SolverInterfaceImpl::initialize()
     bm2n.connectSlaves();
     PRECICE_DEBUG("Established slaves connection " << (bm2n.isRequesting ? "from " : "to ") << bm2n.remoteName);
   }
-  PRECICE_INFO("Slaves are connected");
+  PRECICE_INFO("Aerodynamic and Elastic domains are connected");
 
   for (auto &m2nPair : _m2ns) {
     m2nPair.second.cleanupEstablishment();
@@ -460,7 +460,8 @@ void SolverInterfaceImpl::finalize()
   Event                    e("finalize"); // no precice::syncMode here as MPI is already finalized at destruction of this event
   utils::ScopedEventPrefix sep("finalize/");
 
-  if (_state == State::Initialized) {
+  if (_state == State::Initialized) 
+  {
 
     PRECICE_ASSERT(_couplingScheme->isInitialized());
     PRECICE_DEBUG("Finalize coupling scheme");
@@ -518,7 +519,8 @@ void SolverInterfaceImpl::finalize()
   utils::EventRegistry::instance().finalize();
 
   // Printing requires finalization
-  if (not precice::utils::MasterSlave::isSlave()) {
+  if (not precice::utils::MasterSlave::isSlave()) 
+  {
     utils::EventRegistry::instance().printAll();
   }
 
@@ -526,6 +528,8 @@ void SolverInterfaceImpl::finalize()
   utils::EventRegistry::instance().clear();
   utils::Parallel::finalizeManagedMPI();
   _state = State::Finalized;
+
+ 
 }
 
 int SolverInterfaceImpl::getDimensions() const

@@ -274,10 +274,12 @@ void EventRegistry::printAll() const
 
   std::string logFile;
   std::string summaryFile;
-  if (applicationName.empty()) {
+  if (applicationName.empty()) 
+  {
     logFile     = "Events.json";
     summaryFile = "Events-summary.log";
-  } else {
+  } else 
+  {
     logFile     = applicationName + "-events.json";
     summaryFile = applicationName + "-events-summary.log";
   }
