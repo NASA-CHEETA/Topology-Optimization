@@ -325,7 +325,7 @@ void Precice_ReadCouplingData( SimulationData * sim )
 
 		  printf("\n");
 		  printf("---------------------------------------------------------------------------\n");
-		  printf("Total aerodynamic traction: %lf \n", traction_Tot;
+		  printf("Total aerodynamic traction: %15.9f \n", traction_Tot);
 		  printf("---------------------------------------------------------------------------\n");
 		  printf("\n");
 
@@ -477,14 +477,24 @@ void Precice_WriteCouplingData( SimulationData * sim )
 				case DISPLACEMENTDELTAS:
 					getNodeDisplacementDeltas( interfaces[i]->nodeIDs, interfaces[i]->numNodes, interfaces[i]->dim, sim->vold, sim->coupling_init_v, sim->mt, interfaces[i]->nodeVectorData );
 					
-					/*
+					double sumx = 0;
+					double sumy = 0;
+					double sumz = 0;
 					for(int k = 0 ; k < interfaces[i]->numNodes ; k++ )
 					{
 						int nodeIdx = interfaces[i]->nodeIDs[k] - 1; //The node Id starts with 1, not with 0, therefore, decrement is necessary
-	  					printf("DispX %lf, DispY %lf, DispZ %lf \n", sim->vold[nodeIdx * sim->mt + 0 + 1], sim->vold[nodeIdx * sim->mt + 1 + 1], sim->vold[nodeIdx * sim->mt + 2 + 1]);
+	  					//printf("DispX %lf, DispY %lf, DispZ %lf \n", sim->vold[nodeIdx * sim->mt + 0 + 1], sim->vold[nodeIdx * sim->mt + 1 + 1], sim->vold[nodeIdx * sim->mt + 2 + 1]);
+						sumx = sumx + sim->vold[nodeIdx * sim->mt + 0 + 1];
+						sumy = sumy + sim->vold[nodeIdx * sim->mt + 1 + 1];
+						sumz = sumz + sim->vold[nodeIdx * sim->mt + 2 + 1];
 					}
 
-					*/
+					double Sum = sumx + sumy + sumz;
+
+					/*---Print the total discplacements along each direction---*/
+					printf("Net displacement: %15.9f", Sum );
+
+					
 
 					precicec_writeBlockVectorData( interfaces[i]->displacementDeltasDataID, interfaces[i]->numNodes, interfaces[i]->preciceNodeIDs, interfaces[i]->nodeVectorData );
 
